@@ -1,14 +1,15 @@
+import dotenv
+dotenv.load_dotenv()
+
 from fastapi import FastAPI, Form
 from typing import Annotated
 import uvicorn as uv
 import auth
-import dotenv
-
 import auth.utils
-
-dotenv.load_dotenv()
+from auth.router import router as AuthRouter
 
 app = FastAPI()
+app.include_router(AuthRouter)
 
 @app.get("/")
 def hello_world():
