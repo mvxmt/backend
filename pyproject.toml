@@ -13,6 +13,8 @@ passlib = "^1.7.4"
 python-dotenv = "^1.0.1"
 argon2-cffi = "^23.1.0"
 pydantic-settings = "^2.6.1"
+asyncpg = "^0.30.0"
+psycopg = {extras = ["binary"], version = "^3.2.3"}
 
 
 [build-system]

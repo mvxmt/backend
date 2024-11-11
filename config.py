@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from enum import Enum
 
@@ -9,6 +10,11 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: JWTAlgorithm
     jwt_access_token_exp_minutes: int = 30
+
+    postgres_host: str
+    postgres_user: str
+    postgres_password: str | None = None 
+    postgres_database: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
