@@ -6,6 +6,7 @@ from auth.hasher import verify_password
 from psycopg import AsyncConnection
 from db.users import get_user_by_email
 
+
 async def authenticate_user(conn: AsyncConnection, email: str, password: str):
     user = await get_user_by_email(conn, email)
     if not user:
@@ -14,7 +15,13 @@ async def authenticate_user(conn: AsyncConnection, email: str, password: str):
         return False
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = timedelta(minutes=int(os.environ["JWT_ACCESS_TOKEN_EXP_MINUTES"]))):
+
+def create_access_token(data: dict, expires_delta: timedelta | None):
+    if not expires_delta:
+        expires_delta = timedelta(
+            minutes=int(os.environ["JWT_ACCESS_TOKEN_EXP_MINUTES"])
+        )
+
     SECRET_KEY = os.environ["JWT_SECRET_KEY"]
     ALGORITHM = os.environ["JWT_ALGORITHM"]
 
