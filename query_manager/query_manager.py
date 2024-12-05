@@ -1,6 +1,6 @@
 import ollama
 
-class query_manager:
+class QueryManager:
     def __init__(self, embedding_model='nomic-embed-text'):
         self.embedding_model = embedding_model
     

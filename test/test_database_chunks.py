@@ -3,7 +3,7 @@ import asyncio
 import pytest_asyncio
 import ollama
 import psycopg
-from database_chunks import DatabaseChunkManager
+from db.database_chunks import DatabaseChunkManager
 
 def db_connect(self):
         try:
