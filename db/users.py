@@ -17,9 +17,14 @@ async def register_user(conn: psycopg.AsyncConnection, reg: UserRegistration):
         await conn.commit()
 
 
-async def get_user_by_email(conn: psycopg.AsyncConnection, email: str) -> Optional[UserDBO]:
+async def get_user_by_email(
+    conn: psycopg.AsyncConnection, email: str
+) -> Optional[UserDBO]:
     async with conn.cursor() as cur:
-        await cur.execute("SELECT (name, email, password_hash) FROM user_data.users WHERE email = %s", (email, ))
+        await cur.execute(
+            "SELECT (name, email, password_hash) FROM user_data.users WHERE email = %s",
+            (email,),
+        )
         user = await cur.fetchone()
 
         if user:
