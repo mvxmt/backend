@@ -12,6 +12,7 @@ pwd_context = CryptContext(
     argon2__digest_size=32,
 )
 
+
 def verify_password(plaintext: str, hashed_password: str):
     return pwd_context.verify(plaintext, hashed_password)
 
