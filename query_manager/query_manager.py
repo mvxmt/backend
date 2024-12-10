@@ -1,20 +1,21 @@
 import ollama
 import numpy as np
 
+
 class QueryManager:
-    def __init__(self, embedding_model='nomic-embed-text'):
+    def __init__(self, embedding_model="nomic-embed-text"):
         self.embedding_model = embedding_model
         self.user_input = ""
-    
 
     def set_user_prompt(self, user_input):
         self.user_input = user_input
-    
 
     async def embed_user_prompt(self):
         async with ollama.AsyncClient() as client:
-            embedding = await client.embed(model=self.embedding_model, input=f"search_query: {self.user_input}")
-            embedding_array = np.array(embedding['embeddings'])
+            embedding = await client.embed(
+                model=self.embedding_model, input=f"search_query: {self.user_input}"
+            )
+            embedding_array = np.array(embedding["embeddings"])
         return embedding_array
 
     def get_document_chunk(self, conn, result):
