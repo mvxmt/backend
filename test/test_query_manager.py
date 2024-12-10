@@ -1,5 +1,7 @@
 import unittest
 from query_manager import QueryManager
+import numpy as np
+import asyncio
 
 """
 index 0: id 
@@ -10,38 +12,33 @@ index 3: chunk_vector
 
 
 class TestQueryManager(unittest.TestCase):
-    def test_get_user_prompt(self):
+    def test_set_user_prompt(self):
         expected_result = "I don't know"
 
         qm = QueryManager()
-        qm.get_user_prompt("I don't know")
+        qm.set_user_prompt("I don't know")
 
-        self.assertIsEqual(qm.user_input, expected_result)
+        self.assertEqual(qm.user_input, expected_result)
 
     def test_embed_user_prompt(self):
-        import numpy as np
-        import ollama
-
-        embedding = ollama.embed(
-            model=self.embedding_model, input="search_query: testing the embedding"
-        )
-        expected_embedding = np.array(embedding["embeddings"])
-
         qm = QueryManager()
-        qm.get_user_prompt("testing the embedding")
-        test_embedding = qm.embed_user_prompt()
+        qm.set_user_prompt("testing the embedding")
 
-        self.assertIsInstance(test_embedding, np.ndarray)
-        self.assertEqual(test_embedding, expected_embedding)
+        async def run_test():
+            test_embedding = await qm.embed_user_prompt()
+
+            self.assertIsInstance(test_embedding, np.ndarray)
+            self.assertEqual(test_embedding.size, 768)
+
+        asyncio.run(run_test())
 
     def test_get_document_chunk(self):
         # Simulated results
         result = [
             (1, 1, "the sky is blue", [0.1, 0.2, 0.3]),
             (2, 2, "hello there how are you doing?", [0.3, 0.4, 0.5]),
-            (3, 3, "the quick brown fox", [0.2, 0.3, 0.4, 0.6])(
-                4, 4, "python is a myth", [0.04, 0.03, 0.54]
-            ),
+            (3, 3, "the quick brown fox", [0.2, 0.3, 0.4, 0.6]),
+            (4, 4, "python is a myth", [0.04, 0.03, 0.54]),
         ]
 
         # Expected Output

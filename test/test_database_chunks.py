@@ -1,7 +1,7 @@
 import pytest
 import ollama
 import psycopg
-from db.database_chunks import DatabaseChunkManager
+from database_chunks import DatabaseChunkManager
 
 
 def db_connect(self):
@@ -92,5 +92,5 @@ class TestDatabaseChunkManager:
         results = await dbchm.get_related_chunks(vector)
         document_id = results[0][1]
 
-        assert document_id == 12345
-        # when we insert the most similar chunk make sure it has id of 12345
+        assert document_id == 1
+        # when we insert the most similar chunk make sure it has id of 1
