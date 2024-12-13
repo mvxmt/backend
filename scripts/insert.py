@@ -1,23 +1,26 @@
 import os
+import asyncio
 from routing import _import_module
 from routing import _get_db_connection
 
+
+
 async def main():
-    #Import Modules
+    #Database Manager Paths
     database_chunk_path = '/db/database_chunks.py'
     database_doc_path = '/db/database_documents.py'
-
+    #Services Path
     embedding_path = '/services/embedding.py'
     parser_path = '/services/parser.py'
-    context_path = '/services/context.py'
-
+    #context_path = '/services/context.py'
+    #Import Modules
+    #Database
     DatabaseDocumentManager = _import_module("db_doc",database_doc_path)
     DatabaseChunkManager = _import_module("db_chunk",database_chunk_path)
-
-
+    #Services
     Embedding = _import_module('embedding',embedding_path)
     Parser = _import_module('parser',parser_path)
-    Context = _import_module('context',context_path)
+    #Context = _import_module('context',context_path)
 
     #Get Document Chunks
     path = os.getenv("DATA_DIR")
@@ -33,7 +36,7 @@ async def main():
         em = Embedding()
         dm = DatabaseDocumentManager(conn)
         cm = DatabaseChunkManager(conn)
-        ctx = Context()
+        #ctx = Context()
 
     #Insert Doc
     path = os.getenv("DATA_DIR")
@@ -49,3 +52,4 @@ async def main():
         chunk_vector = em.embed(chunk_text)
         cm.insert(doc_id,chunk_text,chunk_vector)
 
+asyncio.run(main())

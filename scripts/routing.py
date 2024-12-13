@@ -6,10 +6,11 @@ import psycopg
 
 #Database Manager Paths
 database_chunk_path = '/db/database_chunks.py'
-database_doc_path = '/db/database_documents.py'
+#database_doc_path = '/db/database_documents.py'
+
 #Services Paths
 embedding_path = '/services/embedding.py'
-parser_path = '/services/parser.py'
+#parser_path = '/services/parser.py'
 context_path = '/services/context.py'
 
 #Environment Variable
@@ -43,11 +44,12 @@ async def _get_db_connection():
 async def main():
     #Import Modules
     #Database
-    DatabaseDocumentManager = _import_module("db_doc",database_doc_path)
+    #DatabaseDocumentManager = _import_module("db_doc",database_doc_path)
     DatabaseChunkManager = _import_module("db_chunk",database_chunk_path)
+    
     #Services
     Embedding = _import_module('embedding',embedding_path)
-    Parser = _import_module('parser',parser_path)
+    #Parser = _import_module('parser',parser_path)
     Context = _import_module('context',context_path)
 
     #Connect to Database
@@ -61,7 +63,7 @@ async def main():
         embed = em.embed(prompt)
         results = cm.get_related_chunks(embed)
         context = ctx.get_context(results)
-        print(context) #Replace with answer_prompt from Prompt Manager
+        print(context) #Replace with answer_prompt(context) from Prompt Manager
 
         await conn.close()
 

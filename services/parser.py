@@ -1,7 +1,18 @@
 class Parser:
     def get_document(self,path):
-        with open(path,"r") as file:
-            doc = file.read()
+        extension = path.split(".")
+        match extension[1]:
+            case 'txt':
+                with open(path,"r") as file:
+                    doc = file.read()
+            case 'pdf':
+                pass
+            case 'doc':
+                pass
+            case 'docx':
+                pass
+            case 'xml':
+                pass
         return doc
 
     def get_document_chunks(self, doc :str,chunk_size: int):
