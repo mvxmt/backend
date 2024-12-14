@@ -27,7 +27,7 @@ class DatabaseChunkManager:
             await cur.execute(delete_query, (id,))
             await self.__conn.commit()
 
-    async def get_related_chunks(self, vector: np.array):
+    async def get_related_chunks(self, vector: np.ndarray):
         select_query = """
                         SELECT *
                         FROM document_data.chunks
@@ -36,8 +36,8 @@ class DatabaseChunkManager:
                         """
         async with self.__conn.cursor() as cur:
             await cur.execute(
-                select_query(
-                    vector,
+                select_query, (
+                    vector.tolist(),
                 )
             )
             rows = await cur.fetchall()
