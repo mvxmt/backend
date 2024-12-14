@@ -1,5 +1,5 @@
 class Parser:
-    def get_document(self,path):
+    def get_document(self, path):
         extension = path.split(".")
         match extension[1]:
             case 'txt':

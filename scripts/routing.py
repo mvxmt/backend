@@ -3,6 +3,9 @@ import asyncio
 import importlib.util
 import sys
 import psycopg
+from dotenv import load_dotenv
+
+load_dotenv(".env.example",override=True)
 
 #Database Manager Paths
 database_chunk_path = '/db/database_chunks.py'
@@ -14,7 +17,8 @@ embedding_path = '/services/embedding.py'
 context_path = '/services/context.py'
 
 #Environment Variable
-os.environ["OLLAMA_HOST"] = "http://localhost:11434"
+
+#os.environ["OLLAMA_HOST"] = "http://localhost:11434"
 
 def _import_module(module_name,path):
     try:
@@ -35,7 +39,7 @@ async def _get_db_connection():
         'port' : '5432'
     }
     try:
-        conn = await psycopg.connect(**connection_parameters)
+        conn = await psycopg.AsyncConnection.connect(**connection_parameters)
         return conn
     except psycopg.Error as e:
         print(f"Error connecting to the database: {e}")
