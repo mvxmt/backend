@@ -35,10 +35,6 @@ class DatabaseChunkManager:
                         LIMIT 5
                         """
         async with self.__conn.cursor() as cur:
-            await cur.execute(
-                select_query, (
-                    vector.tolist(),
-                )
-            )
+            await cur.execute(select_query, (vector.tolist(),))
             rows = await cur.fetchall()
             return rows
