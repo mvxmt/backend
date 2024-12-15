@@ -62,7 +62,6 @@ async def main():
             opt = input("Y/N\n")
             if opt=="y":
                 #Insert Chunks
-                rows = []
                 for chunk_text in tqdm(chunks):
                     chunk_embed = await em.embed(chunk_text)
                     if len(chunk_embed) > 0:
