@@ -1,7 +1,9 @@
+import os
+
 class Parser:
-    def get_document(self, path):
-        extension = path.split(".")
-        match extension[1]:
+    def get_document(self, path: str):
+        _, extension = os.path.splitext(path)
+        match extension[1:]:
             case "txt":
                 with open(path, "r") as file:
                     doc = file.read()

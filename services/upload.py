@@ -1,8 +1,19 @@
 import os
 
+from psycopg import AsyncConnection
+from db.database_documents import DatabaseDocumentManager
+from db.database_chunks import DatabaseChunkManager
+from .parser import Parser
+
 
 class UploadManager:
-    def __init__(self, conn, db_document_manager, db_chunk_manager, parser):
+    def __init__(
+        self,
+        conn: AsyncConnection,
+        db_document_manager: DatabaseDocumentManager,
+        db_chunk_manager: DatabaseChunkManager,
+        parser: Parser,
+    ):
         self.conn = conn
         self.dm = db_document_manager
         self.cm = db_chunk_manager
@@ -10,8 +21,8 @@ class UploadManager:
         self.path = os.getenv("DATA_DIR")
 
     async def save_to_disk(self, document, filepath: str):
-        extension = filepath.split(".")
-        match extension[1]:
+        _, extension = os.path.splitext(filepath)
+        match extension[1:]:
             case "txt":
                 with open(filepath, "w") as file:
                     file.write(document)
