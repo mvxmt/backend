@@ -9,14 +9,14 @@ class DatabaseChunkManager:
     async def insert_chunk(
         self, document_id: int, chunk_text: str, chunk_vector: np.array
     ):
-        insert_query = "INSERT INTO document_data.chunks (document_id,chunk_text,chunk_vector) VALUES (%s)"
+        insert_query = "INSERT INTO document_data.chunks (document_id,chunk_text,chunk_vector) VALUES (%s,%s,%s)"
         async with self.__conn.cursor() as cur:
             await cur.execute(
                 insert_query,
                 (
                     document_id,
                     chunk_text,
-                    chunk_vector,
+                    chunk_vector.tolist()
                 ),
             )
             await self.__conn.commit()
@@ -27,7 +27,7 @@ class DatabaseChunkManager:
             await cur.execute(delete_query, (id,))
             await self.__conn.commit()
 
-    async def get_related_chunks(self, vector: np.array):
+    async def get_related_chunks(self, vector: np.ndarray):
         select_query = """
                         SELECT *
                         FROM document_data.chunks
@@ -35,10 +35,6 @@ class DatabaseChunkManager:
                         LIMIT 5
                         """
         async with self.__conn.cursor() as cur:
-            await cur.execute(
-                select_query(
-                    vector,
-                )
-            )
+            await cur.execute(select_query, (vector.tolist(),))
             rows = await cur.fetchall()
             return rows
