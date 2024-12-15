@@ -8,9 +8,9 @@ import asyncio
 from tqdm import tqdm
 from dotenv import load_dotenv
 
-from scripts.routing import _get_db_connection
 from db.database_documents import DatabaseDocumentManager
 from db.database_chunks import DatabaseChunkManager
+from db.client import get_database_session
 from services.embedding import EmbedManager
 from services.parser import Parser
 
@@ -35,7 +35,7 @@ async def main():
         return
 
     #Connect to Database
-    async with _get_db_connection() as conn:
+    async for conn in get_database_session():
         em = EmbedManager()
         dm = DatabaseDocumentManager(conn)
         cm = DatabaseChunkManager(conn)
@@ -70,7 +70,6 @@ async def main():
             print('Error: No chunks to insert')
             return
         
-        #await conn.close()
         print("Insertion Complete")
 
 asyncio.run(main())
