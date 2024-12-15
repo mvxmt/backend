@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 class TestCustomModuleImport(unittest.TestCase):
     def test_custom_module_import(self):
-        load_dotenv(".env.example", override=True)
+        load_dotenv()
         path = os.getenv("LOCAL_PATH")
         self.assertIsNotNone(path, "Unable to retrieve env")
 

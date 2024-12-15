@@ -14,7 +14,7 @@ from db.client import get_database_session
 from services.embedding import EmbedManager
 from services.parser import Parser
 
-load_dotenv(".env.example",override=True)
+load_dotenv()
 
 async def main():
     opt=""

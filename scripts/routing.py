@@ -10,7 +10,7 @@ from db.database_chunks import DatabaseChunkManager
 from services.context import ContextManager
 from services.embedding import EmbedManager
 
-load_dotenv(".env.example", override=True)
+load_dotenv()
 
 async def main():
     # Connect to Database
