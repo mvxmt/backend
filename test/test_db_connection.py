@@ -1,5 +1,4 @@
 import psycopg
-import asyncio
 import unittest
 
 

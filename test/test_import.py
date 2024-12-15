@@ -1,5 +1,4 @@
 import os
-import asyncio
 import importlib.util
 import sys
 import unittest
@@ -25,4 +24,4 @@ class TestCustomModuleImport(unittest.TestCase):
         try:
             spec.loader.exec_module(module)
         except Exception as e:
-            self.fail(f"Failed to import:{module_name} at {module_path}: e")
+            self.fail(f"Failed to import:{module_name} at {module_path}: {e}")
