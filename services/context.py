@@ -7,5 +7,5 @@ class ContextManager:
         index 2: chunk_text
         index 3: chunk_vector
         """
-        chunk_list = [{"document_id": row[1], "chunk_text": row[2]} for row in result]
+        chunk_list = [{"id": row[0],"source": row[1], "text": row[2]} for row in result]
         return chunk_list

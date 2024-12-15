@@ -16,7 +16,7 @@ class DatabaseChunkManager:
                 (
                     document_id,
                     chunk_text,
-                    chunk_vector,
+                    chunk_vector.tolist()
                 ),
             )
             await self.__conn.commit()

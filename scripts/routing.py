@@ -44,7 +44,8 @@ async def main():
         embed = await em.embed(prompt)
         results = await cm.get_related_chunks(embed)
         context = ctx.get_context(conn, results)
-        print(context)  # Replace with answer_prompt(context) from Prompt Manager
+        for entry in context:
+            print(f"ID: {entry["id"]}\n Text: {entry["text"]}\n")  # Replace with answer_prompt(context) from Prompt Manager
 
 
 if __name__ == "__main__":
