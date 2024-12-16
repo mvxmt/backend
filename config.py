@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     postgres_password: str | None = None
     postgres_database: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra='ignore')
 
 
 @lru_cache
