@@ -20,8 +20,8 @@ class Parser:
         _, extension = os.path.splitext(path)
         match extension[1:]:
             case "txt":
-                with open(path, "r") as file:
-                    doc = file.read()
+                "partition_text() -> [<unstructured.documents.elements.NarrativeText object]"
+                doc = partition_text(filename=path)[0]
             case "pdf":
                 pass
             case "doc":
