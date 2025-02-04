@@ -4,7 +4,8 @@ from unstructured.partition.pdf import partition_pdf
 from unstructured.partition.doc import partition_doc
 from unstructured.partition.docx import partition_docx
 from unstructured.partition.xml import partition_xml
-import unstructured.documents.elements as elements
+import unstructured.documents.elements as el
+from unstructured.cleaners.core import clean
 
 
 class Parser:
@@ -20,7 +21,7 @@ class Parser:
         """
         Takes in a filepath (str) and returns a string of text.
 
-        Note: cleaning should be implemented in all cases as a precautionary measure.
+        TODO: cleaning should be implemented in all cases as a precautionary measure.
         """
         _, extension = os.path.splitext(path)
         match extension[1:]:
@@ -28,7 +29,9 @@ class Parser:
                 """
                 partition_text() -> list: Retrieves a list of Unstructured elements
                 """
-                doc = partition_text(filename=path)[0]
+                element = partition_text(filename=path)
+                l = [element.text for element in part]
+                doc = " ".join(l)
             case "pdf":
                 """
                 partition_pdf() -> list: Retrieves a list of Unstructured elements
@@ -48,11 +51,11 @@ class Parser:
                 textList = []
 
                 for element in part:
-                    if isinstance(element, elements.Title):
-                        textList.append(f"{element.text}. ")
-                    if isinstance(element, elements.NarrativeText):
+                    if isinstance(element, el.Title):
+                        textList.append(f"{element.text}.")
+                    elif isinstance(element, el.NarrativeText):
                         textList.append(element.text)
-                doc = "".join([text for text in textList])
+                doc = " ".join([text for text in textList])
 
             case "doc":
                 """
