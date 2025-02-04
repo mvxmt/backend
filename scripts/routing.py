@@ -28,7 +28,9 @@ async def main():
 
         relevant_context = []
         for entry in context:
-            relevant_context.add(pm.get_relevance(entry))
+            relevant_context.add(pm.get_relevance(entry["text"]))
+        
+        print(relevant_context)
             #print(f"ID: {entry["id"]}\n Text: {entry["text"]}\n")  # Replace with answer_prompt(context) from Prompt Manager
 
 
