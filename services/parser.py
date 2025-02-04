@@ -4,6 +4,7 @@ from unstructured.partition.pdf import partition_pdf
 from unstructured.partition.doc import partition_doc
 from unstructured.partition.docx import partition_docx
 from unstructured.partition.xml import partition_xml
+import unstructured.documents.elements as elements
 
 
 class Parser:
@@ -19,26 +20,48 @@ class Parser:
         """
         Takes in a filepath (str) and returns a string of text.
 
-        Note: Pdf files will need a proper way of formatting its text
+        Note: cleaning should be implemented in all cases as a precautionary measure.
         """
         _, extension = os.path.splitext(path)
         match extension[1:]:
             case "txt":
                 """
-                partition_text() -> NarrativeText element
+                partition_text() -> list: Retrieves a list of Unstructured elements
                 """
                 doc = partition_text(filename=path)[0]
             case "pdf":
                 """
-                partition_pdf() -> Title and NarativeText elements
+                partition_pdf() -> list: Retrieves a list of Unstructured elements
+
+                Formats Unstructured elements as a string of text. Elements that are not inherently
+                 text types are ignored.
+
+                Supported Elements (concurrently):
+                - Title
+                - NarrativeText
+
+                Note: cleaning should be implemented
                 """
-                doc = partition_pdf(filename=path)
+
+                part = partition_pdf(filename=path)
+
+                textList = []
+
+                for element in part:
+                    if isinstance(element, elements.Title):
+                        textList.append(f"{element.text}. ")
+                    if isinstance(element, elements.NarrativeText):
+                        textList.append(element.text)
+                doc = "".join([text for text in textList])
+
             case "doc":
                 """
-                .doc requires libreoffice to convert the file into a .docx before parsing,
-                dont forget to install libreoffice on server
+                partition_doc() -> list: Retrieves a list of Unstructured elements
 
-                partition_doc() -> ListItem, Text, NarrativeText, and Table elements
+                Note: 
+                - partition_doc requires libreoffice to convert the file into a .docx before 
+                 partitioning. Don't forget to install libreoffice on server.
+                - cleaning should be implemented.
                 """
                 part = partition_doc(filename=path)
                 doc = "".join(
@@ -64,7 +87,7 @@ class Parser:
             "I prefer chunks of around 1000 chars, but I'd rather have a chunk of 1500
             (max_characters) than resort to text-splitting"
 
-        Note: pdf will need a proper way to format its text for chunking
+        Note: ensure chunks are cleaned before returning
         """
         if not os.path.exists(path):
             raise FileNotFoundError("File not found")
@@ -81,7 +104,6 @@ class Parser:
                 )
             case "pdf":
                 """
-                Note: Pdf text needs to be cleaned for chunking
                 """
                 chunks = partition_pdf(
                     filename=path,
