@@ -5,7 +5,6 @@ from unstructured.partition.doc import partition_doc
 from unstructured.partition.docx import partition_docx
 from unstructured.partition.xml import partition_xml
 import unstructured.documents.elements as el
-from unstructured.cleaners.core import clean
 
 
 class Parser:
@@ -29,9 +28,9 @@ class Parser:
                 """
                 partition_text() -> list: Retrieves a list of Unstructured elements
                 """
-                element = partition_text(filename=path)
-                l = [element.text for element in part]
-                doc = " ".join(l)
+                part = partition_text(filename=path)
+                text_list = [element.text for element in part]
+                doc = " ".join(text_list)
             case "pdf":
                 """
                 partition_pdf() -> list: Retrieves a list of Unstructured elements
