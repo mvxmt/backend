@@ -20,16 +20,30 @@ class Parser:
         _, extension = os.path.splitext(path)
         match extension[1:]:
             case "txt":
-                "partition_text() -> [<unstructured.documents.elements.NarrativeText object]"
+                """
+                partition_text() -> [<unstructured.documents.elements.NarrativeText object>]
+                """
                 doc = partition_text(filename=path)[0]
             case "pdf":
-                pass
+                """
+                partition_pdf() -> [<unstructured.documents.elements.Title object>]
+                """
+                doc = partition_pdf(filename=path)
             case "doc":
-                pass
+                """
+                .doc requires libreoffice to convert the file into a .docx before parsing,
+                dont forget to install libreoffice on server
+
+                partition_doc() -> various Unstructured elements (i.e. ListItem, Text, NarrativeText, Table)
+
+                str(element) in "".join() ignores elements that arent explicitly text elements.
+                """
+                part = partition_doc(filename=path)
+                doc = "".join([str(element) for element in part])
             case "docx":
-                pass
+                doc = partition_docx(filename=path)
             case "xml":
-                pass
+                doc = partition_xml(filenme=path)
         return doc
 
     def get_document_chunks(self, path: str, chunk_size: int):
