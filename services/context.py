@@ -1,12 +1,15 @@
 from .crypto import CryptographyManager
 from pydantic import BaseModel
 
+class IndexableBaseModel(BaseModel):
+    """Allows a BaseModel to return its fields by string variable indexing"""
+    def __getitem__(self, item):
+        return getattr(self, item)
 
-class RAGContext(BaseModel):
+class RAGContext(IndexableBaseModel):
     id: int
     source: int
     text: str
-
 
 class ContextManager:
     def __init__(self, crypto: CryptographyManager):
