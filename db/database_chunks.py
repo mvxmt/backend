@@ -32,7 +32,7 @@ class DatabaseChunkManager:
                         SELECT *
                         FROM document_data.chunks
                         ORDER BY 1 - (chunk_vector <=> %s::vector) DESC
-                        LIMIT 5
+                        LIMIT 10
                         """
         async with self.__conn.cursor() as cur:
             await cur.execute(select_query, (vector.tolist(),))
