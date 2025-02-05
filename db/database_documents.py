@@ -22,9 +22,9 @@ class DatabaseDocumentManager:
             doc = await cur.fetchall()
             return doc
 
-    async def insert_document(self, owner: int, filepath: str):
+    async def insert_document(self, owner: int, filepath: str, size: int, filename: str):
         insert_query = (
-            "INSERT INTO document_data.documents (owner, filepath) VALUES (%s, %s)"
+            "INSERT INTO document_data.documents (owner, filepath, size, filename) VALUES (%s, %s, %s, %s)"
         )
         async with self.__conn.cursor() as cur:
             await cur.execute(
@@ -32,6 +32,8 @@ class DatabaseDocumentManager:
                 (
                     owner,
                     filepath,
+                    size,
+                    filename
                 ),
             )
             await self.__conn.commit()
