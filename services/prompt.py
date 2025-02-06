@@ -1,5 +1,4 @@
 import ollama
-import numpy as np
 
 class PromptManager():
     def __init__(self,model="llama3.2:3b"):
