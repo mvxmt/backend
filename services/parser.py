@@ -20,29 +20,25 @@ class Parser:
         """
         Takes in a filepath (str) and returns a string of text.
 
-        TODO: cleaning should be implemented in all cases as a precautionary measure.
+        partition_fileType() -> Retrieves a list of element types
         """
         _, extension = os.path.splitext(path)
         match extension[1:]:
             case "txt":
-                """
-                partition_text() -> list: Retrieves a list of Unstructured elements
-                """
                 part = partition_text(filename=path)
                 text_list = [element.text for element in part]
                 doc = " ".join(text_list)
             case "pdf":
                 """
-                partition_pdf() -> list: Retrieves a list of Unstructured elements
+                Elements that are not inherently text types are ignored.
 
-                Formats Unstructured elements as a string of text. Elements that are not inherently
-                 text types are ignored.
+                Note: unlike the "doc" case, some elements could not be used with
+                str() in order to filter out non text-based elements. Instead it
+                would crash. Further Testing is required.
 
                 Supported Elements (concurrently):
                 - Title
                 - NarrativeText
-
-                Note: cleaning should be implemented
                 """
 
                 part = partition_pdf(filename=path)
@@ -58,26 +54,26 @@ class Parser:
 
             case "doc":
                 """
-                partition_doc() -> list: Retrieves a list of Unstructured elements
-
                 Note: 
                 - partition_doc requires libreoffice to convert the file into a .docx before 
-                 partitioning. Don't forget to install libreoffice on server.
-                - cleaning should be implemented.
+                 partitioning.
                 """
                 part = partition_doc(filename=path)
                 doc = "".join(
                     [str(element) for element in part]
-                )  # ignores elements that arent explicitly text elements.
+                )  # str() ignores non text-based elements
             case "docx":
-                doc = partition_docx(filename=path)
+                part = partition_docx(filename=path)
+                doc = "".join([str(element) for element in part])
             case "xml":
                 doc = partition_xml(filenme=path)
         return doc
 
-    def get_document_chunks(self, path: str, chunk_size: int):
+    def get_document_chunks(self, doc: str, chunk_size: int):
         """
-        Takes in a filepath (str) and returns chunk elements.
+        Takes in a doc (str) and chunk size (int), returns a list of text chunks of the 
+        specified size. Emphasizes complete sentences to retain context over exact chunk
+        size.
 
         max_characters: int (default=500) The hard maximum size for a chunk. No chunk will
             exceed this number of characters. A single element that by itself exceeds this
@@ -89,60 +85,44 @@ class Parser:
             "I prefer chunks of around 1000 chars, but I'd rather have a chunk of 1500
             (max_characters) than resort to text-splitting"
 
-        Note: ensure chunks are cleaned before returning
+        Main: Chunk a string of text or combine with get_document function.
         """
-        if not os.path.exists(path):
-            raise FileNotFoundError("File not found")
 
-        _, extension = os.path.splitext(path)
-        match extension[1:]:
-            case "txt":
-                chunks = partition_text(
-                    filename=path,
-                    strategy="fast",
-                    chunking_strategy="basic",
-                    max_character=200,
-                    new_after_n_chars=chunk_size,
-                )
-            case "pdf":
-                """
-                """
-                chunks = partition_pdf(
-                    filename=path,
-                    strategy="fast",
-                    chunking_strategy="basic",
-                    max_character=200,
-                    new_after_n_chars=chunk_size,
-                )
-            case "doc":
-                """
-                .doc requires libreoffice to convert the file into a .docx before parsing,
-                dont forget to install libreoffice on server
-                """
-                chunks = partition_doc(
-                    filename=path,
-                    strategy="fast",
-                    chunking_strategy="basic",
-                    max_character=200,
-                    new_after_n_chars=chunk_size,
-                )
-            case "docx":
-                chunks = partition_docx(
-                    filename=path,
-                    strategy="fast",
-                    chunking_strategy="basic",
-                    max_character=200,
-                    new_after_n_chars=chunk_size,
-                )
-            case "xml":
-                chunks = partition_xml(
-                    filename=path,
-                    strategy="fast",
-                    chunking_strategy="basic",
-                    xml_keep_tags=True,
-                    max_character=200,
-                    new_after_n_chars=chunk_size,
-                )
-            case _:
-                raise ValueError("Unsupported file type")
-        return chunks
+                # chunks = partition_text(
+                #     filename=path,
+                #     strategy="fast",
+                #     chunking_strategy="basic",
+                #     max_character=200,
+                #     new_after_n_chars=chunk_size,
+                # )
+
+                # chunks = partition_pdf(
+                #     filename=path,
+                #     strategy="fast",
+                #     chunking_strategy="basic",
+                #     max_character=200,
+                #     new_after_n_chars=chunk_size,
+                # )
+
+                # chunks = partition_doc(
+                #     filename=path,
+                #     strategy="fast",
+                #     chunking_strategy="basic",
+                #     max_character=200,
+                #     new_after_n_chars=chunk_size,
+                # )
+                # chunks = partition_docx(
+                #     filename=path,
+                #     strategy="fast",
+                #     chunking_strategy="basic",
+                #     max_character=200,
+                #     new_after_n_chars=chunk_size,
+                # )
+                # chunks = partition_xml(
+                #     filename=path,
+                #     strategy="fast",
+                #     chunking_strategy="basic",
+                #     xml_keep_tags=True,
+                #     max_character=200,
+                #     new_after_n_chars=chunk_size,
+                # )
