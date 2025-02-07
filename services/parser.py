@@ -71,7 +71,7 @@ class Parser:
 
     def get_document_chunks(self, doc: str, chunk_size: int):
         """
-        Takes in a doc (str) and chunk size (int), returns a list of text chunks of the 
+        Takes in a doc (str) and chunk size (int), returns a list of text chunks of the
         specified size. Emphasizes complete sentences to retain context over exact chunk
         size.
 
@@ -88,41 +88,41 @@ class Parser:
         Main: Chunk a string of text or combine with get_document function.
         """
 
-                # chunks = partition_text(
-                #     filename=path,
-                #     strategy="fast",
-                #     chunking_strategy="basic",
-                #     max_character=200,
-                #     new_after_n_chars=chunk_size,
-                # )
+        # chunks = partition_text(
+        #     filename=path,
+        #     strategy="fast",
+        #     chunking_strategy="basic",
+        #     max_character=200,
+        #     new_after_n_chars=chunk_size,
+        # )
 
-                # chunks = partition_pdf(
-                #     filename=path,
-                #     strategy="fast",
-                #     chunking_strategy="basic",
-                #     max_character=200,
-                #     new_after_n_chars=chunk_size,
-                # )
+        # chunks = partition_pdf(
+        #     filename=path,
+        #     strategy="fast",
+        #     chunking_strategy="basic",
+        #     max_character=200,
+        #     new_after_n_chars=chunk_size,
+        # )
 
-                # chunks = partition_doc(
-                #     filename=path,
-                #     strategy="fast",
-                #     chunking_strategy="basic",
-                #     max_character=200,
-                #     new_after_n_chars=chunk_size,
-                # )
-                # chunks = partition_docx(
-                #     filename=path,
-                #     strategy="fast",
-                #     chunking_strategy="basic",
-                #     max_character=200,
-                #     new_after_n_chars=chunk_size,
-                # )
-                # chunks = partition_xml(
-                #     filename=path,
-                #     strategy="fast",
-                #     chunking_strategy="basic",
-                #     xml_keep_tags=True,
-                #     max_character=200,
-                #     new_after_n_chars=chunk_size,
-                # )
+        # chunks = partition_doc(
+        #     filename=path,
+        #     strategy="fast",
+        #     chunking_strategy="basic",
+        #     max_character=200,
+        #     new_after_n_chars=chunk_size,
+        # )
+        # chunks = partition_docx(
+        #     filename=path,
+        #     strategy="fast",
+        #     chunking_strategy="basic",
+        #     max_character=200,
+        #     new_after_n_chars=chunk_size,
+        # )
+        # chunks = partition_xml(
+        #     filename=path,
+        #     strategy="fast",
+        #     chunking_strategy="basic",
+        #     xml_keep_tags=True,
+        #     max_character=200,
+        #     new_after_n_chars=chunk_size,
+        # )
