@@ -85,44 +85,12 @@ class Parser:
             "I prefer chunks of around 1000 chars, but I'd rather have a chunk of 1500
             (max_characters) than resort to text-splitting"
 
-        Main: Chunk a string of text or combine with get_document function.
+        TODO: Chunk a string of text or combine with get_document function.
         """
 
-        # chunks = partition_text(
-        #     filename=path,
-        #     strategy="fast",
-        #     chunking_strategy="basic",
-        #     max_character=200,
-        #     new_after_n_chars=chunk_size,
-        # )
-
-        # chunks = partition_pdf(
-        #     filename=path,
-        #     strategy="fast",
-        #     chunking_strategy="basic",
-        #     max_character=200,
-        #     new_after_n_chars=chunk_size,
-        # )
-
-        # chunks = partition_doc(
-        #     filename=path,
-        #     strategy="fast",
-        #     chunking_strategy="basic",
-        #     max_character=200,
-        #     new_after_n_chars=chunk_size,
-        # )
-        # chunks = partition_docx(
-        #     filename=path,
-        #     strategy="fast",
-        #     chunking_strategy="basic",
-        #     max_character=200,
-        #     new_after_n_chars=chunk_size,
-        # )
-        # chunks = partition_xml(
-        #     filename=path,
-        #     strategy="fast",
-        #     chunking_strategy="basic",
-        #     xml_keep_tags=True,
-        #     max_character=200,
-        #     new_after_n_chars=chunk_size,
-        # )
+        chunks = partition_text(
+            text=path,
+            chunking_strategy="basic",
+            max_character=chunk_size,
+            # new_after_n_chars=chunk_size,
+        )
