@@ -1,5 +1,5 @@
 class ContextManager:
-    def get_context(self, conn, result):
+    def get_context(self, result : tuple):
         # each tuple contains
         """
         index 0: id
