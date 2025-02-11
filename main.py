@@ -6,12 +6,13 @@ import uvicorn as uv
 import auth
 import auth.utils
 from auth.router import router as AuthRouter
+from services.chat import router as ChatRouter
 
 dotenv.load_dotenv()
 
 app = FastAPI()
 app.include_router(AuthRouter)
-
+app.include_router(ChatRouter)
 
 @app.get("/")
 def hello_world():

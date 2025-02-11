@@ -61,8 +61,15 @@ portion of each provided context source and you will not mention that you were u
         message={'role' : 'user', 'content' : f'{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>'}
         try:
             response = await client.chat(model=self.model,messages=[message])
+            #stream = await client.chat(
+            #     model=self.model,
+            #     messages=[message],
+            #     stream=True)
         except ollama.ResponseError as e:
                 print('Error:',e.error)
+        #response = []
+        #async for chunk in stream:
+        #     response.append(chunk['message']['content'])
         return response['message']['content']
 
     async def raw_answer(self,prompt:str):
