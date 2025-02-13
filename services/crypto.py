@@ -3,18 +3,21 @@ import pathlib
 import os
 from contextlib import contextmanager
 import tempfile
+from config import Settings
 
 class CryptographyManager():
     fernet: fn.Fernet
 
-    def __init__(self, machine_key: bytes) -> None:
-        self.fernet = fn.Fernet(machine_key)
+    def __init__(self, machine_keys: list[fn.Fernet]) -> None:
+        self.fernet = fn.MultiFernet(machine_keys)
 
-    
+    @staticmethod
+    def from_settings(settings: Settings):
+        return CryptographyManager([fn.Fernet(k) for k in settings.fernet_keys])
+
     def encrypt_bytes(self, f: bytes) -> bytes:
         return self.fernet.encrypt(f)
     
-
     def decrypt_bytes(self, f: bytes) -> bytes:
         return self.fernet.decrypt(f)
     
