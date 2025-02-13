@@ -6,13 +6,7 @@ class Test_Parser(unittest.TestCase):
     def test_get_path_is_string(self):
         pass
 
-    def test_get_document_returns_tuple(self):
-        pass
-
-    def test_get_document_first_index_is_string(self):
-        pass
-
-    def test_get_document_second_index_is_list(self):
+    def test_get_document_returns_string(self):
         pass
 
     def test_get_text(self):
