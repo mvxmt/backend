@@ -52,14 +52,12 @@ class Parser:
             case _:
                 raise ValueError("Unsupported file type")
 
-        text_list, title_list = [], []
+        text_list = []
         for element in part:
-            if isinstance(element, el.Title):
-                title_list.append(element.text)
-            elif isinstance(element, el.NarrativeText):
+            if isinstance(element, el.NarrativeText):
                 text_list.append(element.text)
 
-        return (" ".join(text_list), title_list)
+        return " ".join(text_list)
 
     def get_document_chunks(self, doc: str, max_chunk_size: int):
         """
