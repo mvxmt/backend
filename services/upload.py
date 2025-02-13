@@ -6,7 +6,6 @@ from db.database_chunks import DatabaseChunkManager
 from .crypto import CryptographyManager
 from .embedding import EmbedManager
 from .parser import Parser
-import ulid
 import pathlib
 
 class UploadManager:

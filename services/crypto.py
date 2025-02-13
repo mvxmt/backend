@@ -18,6 +18,13 @@ class CryptographyManager():
     def decrypt_bytes(self, f: bytes) -> bytes:
         return self.fernet.decrypt(f)
     
+    def encrypt_string(self, s: str) -> str:
+        assert type(s) is str
+        return (self.encrypt_bytes(s.encode())).decode()
+    
+    def decrypt_string(self, s: str) -> str:
+        assert type(s) is str
+        return (self.decrypt_bytes(s.encode())).decode()
 
     def encrypt_file(self, f: pathlib.Path) -> bytes:
         if f.exists() and f.is_file():
