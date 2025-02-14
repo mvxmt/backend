@@ -44,8 +44,7 @@ class UploadManager:
         p = data_dir / src_file
 
         if p.exists() and p.is_file():
-            size = len(p.read_bytes())
-            self.dm.insert_document(user_id, str(p), size, src_file)
+            self.dm.insert_document(user_id, src_file)
 
     async def chunk_uploaded_document(self, filename: str, chunk_size: int):
         filepath = str(self.path + filename)
