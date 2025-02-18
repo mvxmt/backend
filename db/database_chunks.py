@@ -13,11 +13,7 @@ class DatabaseChunkManager:
         async with self.__conn.cursor() as cur:
             await cur.execute(
                 insert_query,
-                (
-                    document_id,
-                    chunk_text,
-                    chunk_vector.tolist()
-                ),
+                (document_id, chunk_text, chunk_vector.tolist()),
             )
             await self.__conn.commit()
 
