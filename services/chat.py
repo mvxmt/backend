@@ -12,15 +12,14 @@ from services.context import ContextManager
 from services.embedding import EmbedManager
 from services.prompt import PromptManager
 
+from services.crypto import CryptographyManager
+from config import Settings, get_settings
 
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Depends
 from fastapi.responses import StreamingResponse
 from typing import Annotated
 from pydantic import BaseModel
 import uuid
-
-class Prompt(BaseModel):
-    string:str
 
 class Response(BaseModel):
     id:str
@@ -35,20 +34,8 @@ class GradedContext():
     justification:str
 
 dotenv.load_dotenv()
-prompt = ""
-em = EmbedManager()
-ctx = ContextManager()
-pm = PromptManager()
 
 router = APIRouter(prefix="/chat")
-
-@router.post("/prompt")
-#async def get_user_input(message:Annotated[str,Form()]):
-async def get_user_input(user_prompt:Prompt):
-    global prompt
-    prompt =  user_prompt.string
-    print("Recieved : ",prompt)
-    return prompt #{"message" : str(f'Received: {message}')}
 
 async def stream_answer(response:Response):
      for chunk in response.message:
@@ -56,10 +43,18 @@ async def stream_answer(response:Response):
             yield letter
             await asyncio.sleep(0.01)
 
-@router.get("/reponse")
-async def chat():
-    global prompt
-    print("Submitted Prompt:",prompt)
+@router.post("/response")
+async def chat(
+    user_prompt:Annotated[str,Form()],
+    settings: Annotated[Settings, Depends(get_settings)]
+    ):
+
+    em = EmbedManager()
+    cm = CryptographyManager.from_settings(settings)
+    ctx = ContextManager(cm)
+    pm = PromptManager()
+
+    print("Submitted Prompt:",user_prompt)
     async for conn in get_database_session():
             try:
                 print("Connecting to DB...")
@@ -71,7 +66,7 @@ async def chat():
 
             try:
                 print("Embedding User Prompt...")
-                embed = await em.embed(prompt)
+                embed = await em.embed(user_prompt)
             except Exception as e:
                 print("Error: ",e)
             else:
@@ -104,7 +99,7 @@ async def chat():
                     graded_entry.source = entry.source
                     graded_entry.text = entry.text
                     #Fill new values
-                    graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,prompt)
+                    graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
                     if graded_entry.score != 0:
                         approved_context.append(graded_entry)
             except Exception as e:
@@ -116,7 +111,7 @@ async def chat():
             
             try:
                 print('Answering Prompt...')
-                augmented_answer = await pm.load_context(context,prompt)
+                augmented_answer = await pm.load_context(context,user_prompt)
             except Exception as e:
                 print("Error: ",e)
             else:
