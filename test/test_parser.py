@@ -1,6 +1,4 @@
 import unittest
-from parser import Parser
-
 
 class Test_Parser(unittest.TestCase):
     def test_get_document_path_is_string(self):
