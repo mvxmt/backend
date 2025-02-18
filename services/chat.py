@@ -16,6 +16,23 @@ from services.prompt import PromptManager
 from fastapi import APIRouter, Form
 from fastapi.responses import StreamingResponse
 from typing import Annotated
+from pydantic import BaseModel
+import uuid
+
+class Prompt(BaseModel):
+    string:str
+
+class Response(BaseModel):
+    id:str
+    role:str
+    message:str
+
+class GradedContext():
+    id:int
+    source:int
+    text:str
+    grade:int
+    justification:str
 
 dotenv.load_dotenv()
 prompt = ""
@@ -26,13 +43,15 @@ pm = PromptManager()
 router = APIRouter(prefix="/chat")
 
 @router.post("/prompt")
-async def get_user_input(message:Annotated[str,Form()]):
+#async def get_user_input(message:Annotated[str,Form()]):
+async def get_user_input(user_prompt:Prompt):
     global prompt
-    prompt = message
-    return {"message" : str(f'Received: {message}')}
+    prompt =  user_prompt.string
+    print("Recieved : ",prompt)
+    return prompt #{"message" : str(f'Received: {message}')}
 
-async def stream_answer(stream):
-     for chunk in stream:
+async def stream_answer(response:Response):
+     for chunk in response.message:
         for letter in chunk:
             yield letter
             await asyncio.sleep(0.01)
@@ -40,6 +59,7 @@ async def stream_answer(stream):
 @router.get("/reponse")
 async def chat():
     global prompt
+    print("Submitted Prompt:",prompt)
     async for conn in get_database_session():
             try:
                 print("Connecting to DB...")
@@ -67,7 +87,7 @@ async def chat():
 
             try:
                 print("Formatting Context...")
-                context = ctx.get_context(results)
+                context = ctx.get_context(results) #Decryption would need to happen here
             except Exception as e:
                 print("Error: ",e)
             else:
@@ -77,13 +97,22 @@ async def chat():
                 print('Grading Relevance...')
                 approved_context = []
                 for entry in tqdm(context):
-                    entry['score'],entry['justification'] = await pm.get_relevance(entry["text"],prompt)
-                    if entry['score'] != 0:
-                        approved_context.append(entry)
+                    #Create new graded entry
+                    graded_entry = GradedContext()
+                    #Fill with current values
+                    graded_entry.id = entry.id
+                    graded_entry.source = entry.source
+                    graded_entry.text = entry.text
+                    #Fill new values
+                    graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,prompt)
+                    if graded_entry.score != 0:
+                        approved_context.append(graded_entry)
             except Exception as e:
                 print("Error: ",e)
             else:
                 print("Context Formatted")
+
+            #INSERT HALLUCINATION CHECK HERE
             
             try:
                 print('Answering Prompt...')
@@ -92,4 +121,6 @@ async def chat():
                 print("Error: ",e)
             else:
                 print("Stream Received")
-    return StreamingResponse(stream_answer(augmented_answer),media_type='text/event-stream')
+
+            response = Response(id=str(uuid.uuid4()),role='assistant',message=augmented_answer)
+    return StreamingResponse(stream_answer(response),media_type='text/event-stream')
