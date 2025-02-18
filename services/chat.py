@@ -37,11 +37,11 @@ dotenv.load_dotenv()
 
 router = APIRouter(prefix="/chat")
 
-async def stream_answer(response:Response):
+async def stream_answer(response:Response,stream_speed:float=0.01):
      for chunk in response.message:
         for letter in chunk:
             yield letter
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(stream_speed)
 
 @router.post("/response")
 async def chat(
@@ -87,7 +87,7 @@ async def chat(
                 print("Error: ",e)
             else:
                 print("Context Formatted")
-
+        
             try:
                 print('Grading Relevance...')
                 approved_context = []
@@ -109,13 +109,22 @@ async def chat(
 
             #INSERT HALLUCINATION CHECK HERE
             
-            try:
-                print('Answering Prompt...')
-                augmented_answer = await pm.load_context(context,user_prompt)
-            except Exception as e:
-                print("Error: ",e)
+            if len(approved_context) > 0:
+                try:
+                    print('Answering Prompt With Context...')
+                    answer = await pm.load_context(context,user_prompt)
+                except Exception as e:
+                    print("Error: ",e)
+                else:
+                    print("Stream Received")
             else:
-                print("Stream Received")
+                try:
+                    print('Answering Prompt without Context...')
+                    answer = await pm.raw_answer(user_prompt)
+                except Exception as e:
+                    print("Error: ",e)
+                else:
+                    print("Stream Received")
 
-            response = Response(id=str(uuid.uuid4()),role='assistant',message=augmented_answer)
-    return StreamingResponse(stream_answer(response),media_type='text/event-stream')
+            response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
+    return StreamingResponse(stream_answer(response,0),media_type='text/event-stream')
