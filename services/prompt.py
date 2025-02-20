@@ -52,35 +52,28 @@ the provided prompt it will receive a 0.\
 
     async def check_for_hallucination(self, answer: str):
         client = ollama.AsyncClient()
-        primer = "You are an expert fact checker. Your task is to determine if the provided answer is plausible. \
-        The answer will be enclosed within the <ANSWER></ANSWER> tags and you will grade the answer on a binary \
-        scale, with 0 meaning unrealistic or not feasible and with\
-        1 meaning realistic and feasible. You will give a numerical grading corresponding to the criteria \
-        mentioned above and you will provide justification as to why the numerical value was provided. Your \
-        response will be in the following format: \n\
-        numerical grade, justification \
-        Do not include any additional formatting in your response and keep your justification clear, concise, \
-        and consisting of only a single sentence. If an answer contains any content that is at all unrealistic \
-        or contains any content that is not at all feasible then the answer will receive a grade of 0."
+        primer = """You are an expert fact checker. Your task is to determine if the provided answer is realistic.
+        The answer will be enclosed within the <ANSWER></ANSWER> tags and you will grade the answer on a binary
+        scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, and 
+        feasible. You will give a numerical grading corresponding to the criteria mentioned above and you will 
+        provide justification as to why the numerical value was provided. If an answer builds upon current facts
+        but is not supported by evidence, you will give it a score of 0. Your response will be formated as a python
+        dictionary with the following keys:
+        numerical grade, justification 
+        Do not include any additional formatting in your response and justify your reasoning with a single complete and
+        concise sentence. 
+        If an answer contains any content that is at all unrealistic or contains any content that is not at all feasible 
+        then the answer will receive a grade of 0."""
 
         message = {"role": "user", "content": f"{primer} <RESPONSE>{answer}</RESPONSE>"}
         try:
-            response = await client.chat(model=self.model, messages=[message])
+            response = client.chat(model=self.model, messages=[message])
         except ollama.ResponseError as e:
             print("Error: ", e.error)
 
-        sensible = response["message"]["content"]
-        sensible = sensible.split(",")
-        score = 0
-        justification = ""
+        legitimacy = response["message"]["content"]
 
-        if len(sensible) > 1:
-            if sensible[0].isnumeric():
-                score = int(sensible[0])
-            if not sensible[1].isnumeric():
-                justification = sensible[1]
-
-        return score, justification
+        return legitimacy
 
     async def load_context(self, ctx: list, user_prompt: str):
         client = ollama.AsyncClient()
