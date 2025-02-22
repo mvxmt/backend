@@ -1,4 +1,5 @@
 import unittest
+from services.parser import Parser
 
 class TestParser(unittest.TestCase):
     def set_up(self):
