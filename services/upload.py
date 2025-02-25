@@ -8,6 +8,7 @@ from .embedding import EmbedManager
 from .parser import Parser
 import pathlib
 
+
 class UploadManager:
     def __init__(
         self,
@@ -56,7 +57,9 @@ class UploadManager:
         for chunk_text in chunks:
             chunk_vector = await self.em.embed(chunk_text)
             chunk_ciphertext = self.crypto.encrypt_bytes(chunk_text.encode())
-            await self.cm.insert_chunk(document_id, chunk_ciphertext.decode(), chunk_vector)
+            await self.cm.insert_chunk(
+                document_id, chunk_ciphertext.decode(), chunk_vector
+            )
 
     async def get_document_id(self, filename: str):
         # Get Inserted Documents ID

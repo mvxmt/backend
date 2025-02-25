@@ -7,6 +7,7 @@ import unstructured.documents.elements as el
 from chonkie import SemanticChunker
 
 
+
 class Parser:
     """
     A class to retrieve and documents and convert them into smaller chunks of text.
@@ -66,5 +67,5 @@ class Parser:
         """
         chunker = SemanticChunker(chunk_size=max_chunk_size)
         chunks = chunker(doc)
-
+        
         return chunks
