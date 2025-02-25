@@ -54,7 +54,7 @@ the provided prompt it will receive a 0.\
         client = ollama.AsyncClient()
         primer = """You are an expert fact checker. Your task is to determine if the provided answer is realistic.
         The answer will be enclosed within the <ANSWER></ANSWER> tags and you will grade the answer on a binary
-        scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, 
+        scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, and 
         feasible. You will give a numerical grading corresponding to the criteria mentioned above and you will 
         provide justification as to why the numerical value was provided. If an answer builds upon current facts
         but is not supported by evidence, you will give it a score of 0. Your response will be formated as a python
