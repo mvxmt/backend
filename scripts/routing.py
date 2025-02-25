@@ -13,6 +13,7 @@ from services.prompt import PromptManager
 
 load_dotenv()
 
+
 async def main():
     # Connect to Database
     async for conn in get_database_session():
@@ -36,6 +37,9 @@ async def main():
         #print("Raw Answer:\n",raw_answer)
         augmented_answer = await pm.load_context(context,prompt)
         print(augmented_answer)
+        print(
+            f"ID: {entry['id']}\n Text: {entry['text']}\n"
+        )  # Replace with answer_prompt(context) from Prompt Manager
 
 
 if __name__ == "__main__":
