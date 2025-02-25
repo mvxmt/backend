@@ -54,7 +54,7 @@ the provided prompt it will receive a 0.\
         client = ollama.AsyncClient()
         primer = """You are an expert fact checker. Your task is to determine if the provided answer is realistic.
         The answer will be enclosed within the <ANSWER></ANSWER> tags and you will grade the answer on a binary
-        scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, and 
+        scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, 
         feasible. You will give a numerical grading corresponding to the criteria mentioned above and you will 
         provide justification as to why the numerical value was provided. If an answer builds upon current facts
         but is not supported by evidence, you will give it a score of 0. Your response will be formated as a python
@@ -63,17 +63,17 @@ the provided prompt it will receive a 0.\
         Do not include any additional formatting in your response and justify your reasoning with a single complete and
         concise sentence. 
         If an answer contains any content that is at all unrealistic or contains any content that is not at all feasible 
-        then the answer will receive a grade of 0."""
+        then the answer will receive a grade of 0. If any statement within the answer is incorrect the answer will also 
+        receive a grade of 0. If any math statements are provided with a solution, then the solution within the answer 
+        must be correct or else the answer will receive a grade of 0."""
 
         message = {"role": "user", "content": f"{primer} <RESPONSE>{answer}</RESPONSE>"}
         try:
-            response = client.chat(model=self.model, messages=[message])
+            response = await client.chat(model=self.model, messages=[message])
         except ollama.ResponseError as e:
             print("Error: ", e.error)
 
-        legitimacy = response["message"]["content"]
-
-        return legitimacy
+        return response["message"]["content"]
 
     async def load_context(self, ctx: list, user_prompt: str):
         client = ollama.AsyncClient()
