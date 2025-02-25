@@ -12,7 +12,7 @@ class ContextManager:
     def __init__(self, crypto: CryptographyManager):
         self.crypto = crypto
 
-    def get_context(self, result : tuple):
+    def get_context(self, result: tuple):
         # each tuple contains
         """
         index 0: id
