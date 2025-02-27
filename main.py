@@ -28,5 +28,4 @@ def hash_text(pt: Annotated[str, Form()]):
 
 
 if __name__ == "__main__":
-    print(settings.fernet_keys)
     uv.run(app, host="0.0.0.0")
