@@ -10,26 +10,18 @@ from chonkie import SemanticChunker
 
 class Parser:
     """
-    A class to retrieve and documents and convert them into smaller chunks of text.
+    A class to retrieve documents and convert them into smaller chunks of text.
 
     Methods:
-    get_document(path) -> str: Retrieves a document from a filepath and returns a tuple
-                                including the doc text (str) and a list of titles (str)
-    get_document_chunks(doc,chunk_size) -> str and int: Returns a list of text chunks.
+    get_document(path) -> str: Reads a document from a given file path and extracts its textual content.
+    get_document_chunks(doc, chunk_size) -> list[str]: Splits the document text into smaller chunks of a specified size.
     """
 
     def get_document(self, path: str):
         """
-        Takes in a filepath (str) and returns a tuple of a string of document text and a
-         list of title strings (str, [str])
-
-        partition_fileType() -> List of elements
-
-        Elements that are not inherently text types are ignored.
-
-        Supported Elements (concurrently):
-        - Title
-        - NarrativeText
+        Reads a document from a file and returns its textual content as a string.
+        Uses format-specific partitioning functions to extract text elements.
+        Only textual elements are retained.
         """
         _, extension = os.path.splitext(path)
         match extension[1:]:
@@ -41,31 +33,25 @@ class Parser:
 
             case "doc":
                 """
-                .doc requires libreoffice to convert the file into a .docx before parsing,
-                dont forget to install libreoffice on server
+                .doc files require LibreOffice to be installed for conversion to .docx before processing.
+                Ensure LibreOffice is available on the system
                 """
                 part = partition_doc(filename=path)
 
             case "docx":
                 part = partition_docx(filename=path)
-            case "xml":
-                pass
+            
             case _:
                 raise ValueError("Unsupported file type")
 
-        text_list = []
-        for element in part:
-            if isinstance(element, el.NarrativeText):
-                text_list.append(element.text)
-
-        return " ".join(text_list)
+        return " ".join(element.text for element in part if isinstance(element, el.NarrativeText))
 
     def get_document_chunks(self, doc: str, max_chunk_size: int):
         """
-        Takes in a doc (str) and chunk size (int), returns a list of text chunks of the
-        specified size (in tokens)
+        Splits a document's text into smaller chunks of a specified token size.
+        Uses a semantic chunking approach to divide the text while preserving meaning.
         """
         chunker = SemanticChunker(chunk_size=max_chunk_size)
         chunks = chunker(doc)
         
-        return chunks
+        return [chunk.text for chunk in chunks]
