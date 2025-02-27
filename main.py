@@ -6,12 +6,16 @@ import uvicorn as uv
 import auth
 import auth.utils
 from auth.router import router as AuthRouter
+from services.chat import router as ChatRouter
+from config import get_settings
 
 dotenv.load_dotenv()
 
 app = FastAPI()
 app.include_router(AuthRouter)
+app.include_router(ChatRouter)
 
+settings = get_settings()
 
 @app.get("/")
 def hello_world():
@@ -24,4 +28,5 @@ def hash_text(pt: Annotated[str, Form()]):
 
 
 if __name__ == "__main__":
+    print(settings.fernet_keys)
     uv.run(app, host="0.0.0.0")

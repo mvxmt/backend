@@ -88,6 +88,7 @@ portion of each provided context source and you will not mention that you were u
             "content": f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
         }
         try:
+
             response = await client.chat(model=self.model, messages=[message])
         except ollama.ResponseError as e:
             print("Error:", e.error)
