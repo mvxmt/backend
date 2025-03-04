@@ -24,10 +24,12 @@ more-itertools = "^10.5.0"
 python-ulid = "^3.0.0"
 cryptography = "^44.0.1"
 tqdm = "^4.67.1"
+sqlalchemy = "^2.0.38"
 
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.8.1"
+sqlacodegen = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]

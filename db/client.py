@@ -12,4 +12,4 @@ async def get_database_session():
         yield conn
 
 
-SessionDep = Annotated[psycopg.AsyncConnection, Depends(get_database_session)]
+DatabaseConnection = Annotated[psycopg.AsyncConnection, Depends(get_database_session)]

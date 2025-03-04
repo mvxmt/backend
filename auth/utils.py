@@ -16,7 +16,7 @@ async def authenticate_user(conn: AsyncConnection, email: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if not expires_delta:
         expires_delta = timedelta(
             minutes=int(os.environ["JWT_ACCESS_TOKEN_EXP_MINUTES"])
