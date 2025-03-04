@@ -109,6 +109,7 @@ async def chat(
 
             #INSERT HALLUCINATION CHECK HERE
             
+            answer = ""
             if len(approved_context) > 0:
                 try:
                     print('Answering Prompt With Context...')
@@ -120,7 +121,9 @@ async def chat(
             else:
                 try:
                     print('Answering Prompt without Context...')
-                    answer = await pm.raw_answer(user_prompt)
+                    #answer = await pm.raw_answer(user_prompt)
+                    response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
+                    StreamingResponse(await pm.raw_answer(user_prompt),media_type='text/event-stream')
                 except Exception as e:
                     print("Error: ",e)
                 else:

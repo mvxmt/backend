@@ -1,86 +1,71 @@
-import os
-import pathlib
+import sys
+
+# sys hacks to get imports to work
+sys.path.append("./")
+
+import dotenv
+import tempfile
+#import pathlib
 
 from psycopg import AsyncConnection
 
-from db.database_chunks import DatabaseChunkManager
-from db.database_documents import DatabaseDocumentManager
+from fastapi import  APIRouter, Form, Depends, UploadFile
 
-from .crypto import CryptographyManager
-from .embedding import EmbedManager
-from .parser import Parser
+from db.database_chunks import DatabaseChunkManager as cm
+from db.database_documents import DatabaseDocumentManager as dm
+
+from .crypto import CryptographyManager as crypto
+from .embedding import EmbedManager as em
+from .parser import Parser as parser
 
 
-class UploadManager:
-    def __init__(
-        self,
-        conn: AsyncConnection,
-        db_document_manager: DatabaseDocumentManager,
-        db_chunk_manager: DatabaseChunkManager,
-        embed_manager: EmbedManager,
-        crypto: CryptographyManager,
-        parser: Parser,
-    ):
-        self.conn = conn
-        self.dm = db_document_manager
-        self.cm = db_chunk_manager
-        self.parser = parser
-        self.crypto = crypto
-        self.em = embed_manager
-        self.path = os.getenv("DATA_DIR")
+dotenv.load_dotenv()
+router = APIRouter(prefix="/file")
 
-    # Docuemnts no longer needed to be saved to disk
-    # local copy gets ingested and then deleted.
-    async def save_to_disk(self, document, filepath: str):
-        _, extension = os.path.splitext(filepath)
-        match extension[1:]:
-            case "txt":
-                with open(filepath, "w") as file:
-                    file.write(document)
-            case "pdf":
-                with open(filepath, "wb") as file:
-                    file.write(document)
-            case "xml":
-                with open(filepath, "w", encoding="utf-8") as file:
-                    file.write(document)
+    #DEPRECATED
+    #async def insert_uploaded_document(self, src_file: str, user_id: int):
+    #    data_dir = pathlib.Path(path)
+    #    p = data_dir / src_file
+    #
+    #   if p.exists() and p.is_file():
+    #       await dm.insert_document(user_id, src_file)
 
-    # Documents no longer need to be uploaded,
-    # they need to be fed into the parser manager
-    async def insert_uploaded_document(self, src_file: str, user_id: int):
-        data_dir = pathlib.Path(self.path)
-        p = data_dir / src_file
+async def insert_chunks(document_id: int, chunks: list[str]):
+    for chunk_text in chunks:
+        chunk_vector = await em.embed(chunk_text)
+        chunk_ciphertext = crypto.encrypt_bytes(chunk_text.encode())
+        await cm.insert_chunk(
+            document_id, chunk_ciphertext.decode(), chunk_vector
+        )
 
-        if p.exists() and p.is_file():
-            await self.dm.insert_document(user_id, src_file)
+# Documents should still be assigned an ID to keep track of
+# the source document and organize chunks
+async def get_document_id(filename: str):
+    # Get Inserted Documents ID
+    doc = await dm.get_document_by_filename(filename)
+    return doc[0]
 
-    async def chunk_uploaded_document(self, filename: str, chunk_size: int):
-        filepath = str(self.path + filename)
-        doc = self.parser.get_document(filepath)
-        chunks = self.parser.get_document_chunks(doc, chunk_size)
-        return chunks
+# Documents no longer have a filepath to retrieve
+async def get_document_path(id: int):
+    # Get Inserted Documents ID
+    doc = await dm.get_document_by_id(id)
+    return doc[2]
 
-    async def insert_chunks(self, document_id: int, chunks: list[str]):
-        for chunk_text in chunks:
-            chunk_vector = await self.em.embed(chunk_text)
-            chunk_ciphertext = self.crypto.encrypt_bytes(chunk_text.encode())
-            await self.cm.insert_chunk(
-                document_id, chunk_ciphertext.decode(), chunk_vector
-            )
+# Main Driver Function, should route what needs to occur
+# on document upload.
+#Take in a filepath and the filetype
 
-    # Documents should still be assigned an ID to keep track of
-    # the source document and organize chunks
-    async def get_document_id(self, filename: str):
-        # Get Inserted Documents ID
-        doc = await self.dm.get_document_by_filename(filename)
-        return doc[0]
-
-    # Documents no longer have a filepath to retrieve
-    async def get_document_path(self, id: int):
-        # Get Inserted Documents ID
-        doc = await self.dm.get_document_by_id(id)
-        return doc[2]
-
-    # Main Driver Function, should route what needs to occur
-    # on document upload.
-    async def on_upload(self):
-        pass
+@router.post("/upload")
+async def on_upload(src_file:UploadFile, user_id:int):
+    #Get File Name
+    source = src_file.filename
+    #Insert File Owner and File Name Into DB
+    #await dm.insert_document(user_id,source)
+    #Parse File
+    content = await parser.get_document_content(src_file,src_file.content_type)
+    #Chunk Document
+    chunks =  parser.get_content_chunks(content)
+    #Insert Chunks into DB
+    await  insert_chunks(source,chunks)
+    #Delete Temp File
+    src_file.close()

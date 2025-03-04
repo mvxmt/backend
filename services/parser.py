@@ -1,10 +1,8 @@
 import os
-from unstructured.partition.text import partition_text
-from unstructured.partition.pdf import partition_pdf
-from unstructured.partition.doc import partition_doc
-from unstructured.partition.docx import partition_docx
+from unstructured.partition.auto import partition
 import unstructured.documents.elements as el
 from chonkie import SemanticChunker
+import unstructured.errors
 
 
 
@@ -17,7 +15,16 @@ class Parser:
     get_document_chunks(doc, chunk_size) -> list[str]: Splits the document text into smaller chunks of a specified size.
     """
 
-    def get_document(self, path: str):
+    async def get_document_content(file, filetype:str):
+        try:
+            part = await partition(file=file,content_type=filetype)
+        except TypeError as e:
+            print("PARSER ERROR: ",e.error)
+
+        return " ".join(element.text for element in part if isinstance(element, el.NarrativeText))
+
+    #DEPRECATED
+    async def get_document(self, path: str):
         """
         Reads a document from a file and returns its textual content as a string.
         Uses format-specific partitioning functions to extract text elements.
@@ -46,7 +53,7 @@ class Parser:
 
         return " ".join(element.text for element in part if isinstance(element, el.NarrativeText))
 
-    def get_document_chunks(self, doc: str, max_chunk_size: int):
+    async def get_document_chunks(self, doc: str, max_chunk_size: int):
         """
         Splits a document's text into smaller chunks of a specified token size.
         Uses a semantic chunking approach to divide the text while preserving meaning.
