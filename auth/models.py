@@ -5,10 +5,12 @@ class User(BaseModel):
     name: str
     email: str
 
+class UserWithId(User):
+    id: int
 
 class UserRegistration(User):
     password: str
 
 
-class UserDBO(User):
+class UserDBO(UserWithId):
     password_hash: str

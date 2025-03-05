@@ -7,6 +7,7 @@ import auth
 import auth.utils
 from auth.router import router as AuthRouter
 from services.chat import router as ChatRouter
+from services.chat_history import router as ChatHistoryRouter
 from config import get_settings
 
 dotenv.load_dotenv()
@@ -14,6 +15,7 @@ dotenv.load_dotenv()
 app = FastAPI()
 app.include_router(AuthRouter)
 app.include_router(ChatRouter)
+app.include_router(ChatHistoryRouter)
 
 settings = get_settings()
 
