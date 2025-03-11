@@ -122,12 +122,12 @@ async def chat(
                 try:
                     print('Answering Prompt without Context...')
                     #answer = await pm.raw_answer(user_prompt)
-                    response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
-                    StreamingResponse(await pm.raw_answer(user_prompt),media_type='text/event-stream')
+                    #response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
+                    return StreamingResponse(pm.raw_answer(user_prompt))
                 except Exception as e:
                     print("Error: ",e)
                 else:
                     print("Stream Received")
 
             response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
-    return StreamingResponse(stream_answer(response,0),media_type='text/event-stream')
+    return response
