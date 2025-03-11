@@ -36,15 +36,14 @@ settings = get_settings()
 async def insert_chunks(conn, document_id: int, chunks: list[str]):
         cm = DatabaseChunkManager(conn)
         em = EmbedManager()
-        crypto = CryptographyManager(settings)
+        crypto = CryptographyManager.from_settings(settings)
 
         for chunk_text in chunks:
             chunk_vector = await em.embed(chunk_text)
-            chunk_ciphertext = crypto.encrypt_bytes(chunk_text.encode())
-            print(chunk_ciphertext)
-            #await cm.insert_chunk(
-                #document_id, chunk_ciphertext.decode(), chunk_vector
-            #)
+            chunk_ciphertext = crypto.encrypt_string(chunk_text)
+            await cm.insert_chunk(
+                document_id, chunk_ciphertext, chunk_vector
+            )
 
 
 # Main Driver Function, should route what needs to occur
@@ -57,8 +56,8 @@ async def on_upload(src_file:UploadFile, user_id:int):
         #Get File Name
         source = src_file.filename
         #Insert File Owner and File Name Into DB
-        #dm = DatabaseDocumentManager(conn)
-        #await dm.insert_document(user_id,source)
+        dm = DatabaseDocumentManager(conn)
+        source_id = await dm.insert_document(user_id,source)
         #Parse File
         content = await parser.get_document_content(src_file.file,src_file.content_type)
        
@@ -67,7 +66,6 @@ async def on_upload(src_file:UploadFile, user_id:int):
 
         #Chunk Document
         chunks =  await parser.get_content_chunks(content)
-        
-        print(len(chunks))
+
         #Insert Chunks into DB
-        await insert_chunks(conn,source,chunks)
+        await insert_chunks(conn,source_id,chunks)

@@ -13,18 +13,9 @@ class DatabaseDocumentManager:
             doc = await cur.fetchall()
             return doc
 
-    async def get_document_by_filename(self, filename: int):
-        dir = os.getenv("DATA_DIR")
-        path = str(dir + filename)
-        select_query = "SELECT * FROM document_data.documents WHERE FILEPATH = %s"
-        async with self.__conn.cursor() as cur:
-            await cur.execute(select_query, (path,))
-            doc = await cur.fetchall()
-            return doc
-
     async def insert_document(self, owner: int, filename: str):
         insert_query = (
-            "INSERT INTO document_data.documents (owner, filename) VALUES (%s, %s)"
+            "INSERT INTO document_data.documents (owner, filename) VALUES (%s, %s) RETURNING id"
         )
         async with self.__conn.cursor() as cur:
             await cur.execute(
@@ -34,7 +25,10 @@ class DatabaseDocumentManager:
                     filename
                 ),
             )
+            doc_id = (await cur.fetchone())[0]
             await self.__conn.commit()
+            return doc_id
+
 
     async def delete_document(self, id: int):
         delete_query = "DELETE FROM document_data.documents WHERE ID = %s"
