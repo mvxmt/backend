@@ -1,7 +1,7 @@
 import sys
 
 # sys hacks to get imports to work
-sys.path.append("./")
+# sys.path.append("./")
 
 import os
 import asyncio
