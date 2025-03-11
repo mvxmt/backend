@@ -196,3 +196,6 @@ pyrightconfig.json
 
 # MacOS Bad Files
 .DS_Store
+
+.envrc
+.direnv
