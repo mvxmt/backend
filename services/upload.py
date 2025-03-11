@@ -4,10 +4,6 @@ import sys
 sys.path.append("./")
 
 import dotenv
-import tempfile
-#import pathlib
-
-from psycopg import AsyncConnection
 
 from fastapi import  APIRouter, UploadFile
 
@@ -20,18 +16,9 @@ from .embedding import EmbedManager
 from .parser import Parser
 from config import get_settings
 
-
 dotenv.load_dotenv()
 router = APIRouter(prefix="/file")
 settings = get_settings()
-
-    #DEPRECATED
-    #async def insert_uploaded_document(self, src_file: str, user_id: int):
-    #    data_dir = pathlib.Path(path)
-    #    p = data_dir / src_file
-    #
-    #   if p.exists() and p.is_file():
-    #       await dm.insert_document(user_id, src_file)
 
 async def insert_chunks(conn, document_id: int, chunks: list[str]):
         cm = DatabaseChunkManager(conn)

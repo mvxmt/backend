@@ -1,5 +1,4 @@
 import psycopg
-import os
 
 
 class DatabaseDocumentManager:
