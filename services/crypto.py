@@ -10,6 +10,9 @@ class CryptographyManager:
     fernet: fn.Fernet
 
     def __init__(self, machine_keys: list[fn.Fernet]) -> None:
+        assert type(machine_keys) is list
+        assert type(machine_keys[0]) is fn.Fernet
+
         self.fernet = fn.MultiFernet(machine_keys)
 
     @staticmethod
