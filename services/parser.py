@@ -1,10 +1,6 @@
-import os
 from unstructured.partition.auto import partition
 import unstructured.documents.elements as el
 from chonkie import SemanticChunker
-import unstructured.errors
-
-
 
 class Parser:
     """
