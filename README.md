@@ -1,8 +1,6 @@
 # Instructions to run
 
-This project was instantiated with Python 3.12
-
-1. Install poetry using `pip install poetry`
-2. Install dependencies `poetry install`
-3. Open a shell with the venv `poetry shell`
+1. Install uv using `pip install uv`
+2. Install dependencies `uv sync`
+3. Activate venv `source .venv/bin/activate`
 4. Run `python main.py`
