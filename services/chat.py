@@ -19,7 +19,6 @@ from fastapi import APIRouter, Form, Depends
 from fastapi.responses import StreamingResponse
 from typing import Annotated
 from pydantic import BaseModel
-import uuid
 
 class Response(BaseModel):
     id:str
@@ -108,8 +107,7 @@ async def chat(
                 print("Context Formatted")
 
             #INSERT HALLUCINATION CHECK HERE
-            
-            answer = ""
+
             if len(approved_context) > 0:
                 try:
                     print('Answering Prompt With Context...')
