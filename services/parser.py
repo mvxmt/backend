@@ -1,12 +1,6 @@
-import os
-from unstructured.partition.text import partition_text
-from unstructured.partition.pdf import partition_pdf
-from unstructured.partition.doc import partition_doc
-from unstructured.partition.docx import partition_docx
+from unstructured.partition.auto import partition
 import unstructured.documents.elements as el
 from chonkie import SemanticChunker
-
-
 
 class Parser:
     """
@@ -17,41 +11,20 @@ class Parser:
     get_document_chunks(doc, chunk_size) -> list[str]: Splits the document text into smaller chunks of a specified size.
     """
 
-    def get_document(self, path: str):
-        """
-        Reads a document from a file and returns its textual content as a string.
-        Uses format-specific partitioning functions to extract text elements.
-        Only textual elements are retained.
-        """
-        _, extension = os.path.splitext(path)
-        match extension[1:]:
-            case "txt":
-                part = partition_text(filename=path)
-
-            case "pdf":
-                part = partition_pdf(filename=path)
-
-            case "doc":
-                """
-                .doc files require LibreOffice to be installed for conversion to .docx before processing.
-                Ensure LibreOffice is available on the system
-                """
-                part = partition_doc(filename=path)
-
-            case "docx":
-                part = partition_docx(filename=path)
-            
-            case _:
-                raise ValueError("Unsupported file type")
+    async def get_document_content(self, file, filetype:str):
+        try:
+            part = partition(file=file,content_type=filetype)
+        except TypeError as e:
+            print("PARSER ERROR: ",e)
 
         return " ".join(element.text for element in part if isinstance(element, el.NarrativeText))
 
-    def get_document_chunks(self, doc: str, max_chunk_size: int):
+    async def get_content_chunks(self, content: str, max_chunk_size: int = 200):
         """
         Splits a document's text into smaller chunks of a specified token size.
         Uses a semantic chunking approach to divide the text while preserving meaning.
         """
         chunker = SemanticChunker(chunk_size=max_chunk_size)
-        chunks = chunker(doc)
+        chunks = chunker(content)
         
         return [chunk.text for chunk in chunks]

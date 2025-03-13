@@ -1,72 +1,58 @@
-import os
+import sys
 
-from psycopg import AsyncConnection
-from db.database_documents import DatabaseDocumentManager
+# sys hacks to get imports to work
+sys.path.append("./")
+
+import dotenv
+
+from fastapi import  APIRouter, UploadFile
+
 from db.database_chunks import DatabaseChunkManager
+from db.database_documents import DatabaseDocumentManager
+from db.client import get_database_session
+
 from .crypto import CryptographyManager
 from .embedding import EmbedManager
 from .parser import Parser
-import pathlib
+from config import get_settings
 
+dotenv.load_dotenv()
+router = APIRouter(prefix="/file")
+settings = get_settings()
 
-class UploadManager:
-    def __init__(
-        self,
-        conn: AsyncConnection,
-        db_document_manager: DatabaseDocumentManager,
-        db_chunk_manager: DatabaseChunkManager,
-        embed_manager: EmbedManager,
-        crypto: CryptographyManager,
-        parser: Parser,
-    ):
-        self.conn = conn
-        self.dm = db_document_manager
-        self.cm = db_chunk_manager
-        self.parser = parser
-        self.crypto = crypto
-        self.em = embed_manager
-        self.path = os.getenv("DATA_DIR")
+async def insert_chunks(conn, document_id: int, chunks: list[str]):
+        cm = DatabaseChunkManager(conn)
+        em = EmbedManager()
+        crypto = CryptographyManager.from_settings(settings)
 
-    async def save_to_disk(self, document, filepath: str):
-        _, extension = os.path.splitext(filepath)
-        match extension[1:]:
-            case "txt":
-                with open(filepath, "w") as file:
-                    file.write(document)
-            case "pdf":
-                with open(filepath, "wb") as file:
-                    file.write(document)
-            case "xml":
-                with open(filepath, "w", encoding="utf-8") as file:
-                    file.write(document)
-
-    async def insert_uploaded_document(self, src_file: str, user_id: int):
-        data_dir = pathlib.Path(self.path)
-        p = data_dir / src_file
-
-        if p.exists() and p.is_file():
-            self.dm.insert_document(user_id, src_file)
-
-    async def chunk_uploaded_document(self, filename: str, chunk_size: int):
-        filepath = str(self.path + filename)
-        doc = self.parser.get_document(filepath)
-        chunks = self.parser.get_document_chunks(doc, chunk_size)
-        return chunks
-
-    async def insert_chunks(self, document_id: int, chunks: list[str]):
         for chunk_text in chunks:
-            chunk_vector = await self.em.embed(chunk_text)
-            chunk_ciphertext = self.crypto.encrypt_bytes(chunk_text.encode())
-            await self.cm.insert_chunk(
-                document_id, chunk_ciphertext.decode(), chunk_vector
+            chunk_vector = await em.embed(chunk_text)
+            chunk_ciphertext = crypto.encrypt_string(chunk_text)
+            await cm.insert_chunk(
+                document_id, chunk_ciphertext, chunk_vector
             )
 
-    async def get_document_id(self, filename: str):
-        # Get Inserted Documents ID
-        doc = await self.dm.get_document_by_filename(filename)
-        return doc[0]
 
-    async def get_document_path(self, id: int):
-        # Get Inserted Documents ID
-        doc = await self.dm.get_document_by_id(id)
-        return doc[2]
+# Main Driver Function, should route what needs to occur
+# on document upload.
+#Take in a filepath and the filetype
+@router.post("/upload")
+async def on_upload(src_file:UploadFile, user_id:int):
+    async for conn in get_database_session():
+        parser = Parser()
+        #Get File Name
+        source = src_file.filename
+        #Insert File Owner and File Name Into DB
+        dm = DatabaseDocumentManager(conn)
+        source_id = await dm.insert_document(user_id,source)
+        #Parse File
+        content = await parser.get_document_content(src_file.file,src_file.content_type)
+       
+        #Delete Temp File
+        await src_file.close()
+
+        #Chunk Document
+        chunks =  await parser.get_content_chunks(content)
+
+        #Insert Chunks into DB
+        await insert_chunks(conn,source_id,chunks)

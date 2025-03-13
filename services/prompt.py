@@ -88,7 +88,6 @@ portion of each provided context source and you will not mention that you were u
             "content": f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
         }
         try:
-
             response = await client.chat(model=self.model, messages=[message])
         except ollama.ResponseError as e:
             print("Error:", e.error)
@@ -96,9 +95,24 @@ portion of each provided context source and you will not mention that you were u
 
     async def raw_answer(self, prompt: str):
         client = ollama.AsyncClient()
-        message = {"role": "user", "content": prompt}
         try:
-            response = await client.chat(model=self.model, messages=[message])
+            stream = await client.chat(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                stream=True,
+            )
+
+            async for chunk in stream:
+                yield chunk["message"]["content"]
+
         except ollama.ResponseError as e:
-            print("Error:", e.error)
-        return response["message"]["content"]
+            print("Error: ", e.error)
+
+
+#        client = ollama.AsyncClient()
+#        message = {"role": "user", "content": prompt}
+#        try:
+#            response = await client.chat(model=self.model, messages=[message])
+#        except ollama.ResponseError as e:
+#            print("Error:", e.error)
+#        return response["message"]["content"]
