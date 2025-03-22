@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -14,3 +15,8 @@ class UserRegistration(User):
 
 class UserDBO(UserWithId):
     password_hash: str
+
+class RefreshTokenInfo(BaseModel):
+    token: str
+    exp: datetime
+    user_id: int

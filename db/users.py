@@ -31,3 +31,18 @@ async def get_user_by_email(
             return UserDBO(id=user[0], name=user[1], email=user[2], password_hash=user[3])
         else:
             return None
+
+async def get_user_by_id(
+    conn: psycopg.AsyncConnection, id: int
+) -> Optional[UserDBO]:
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "SELECT (id, name, email, password_hash) FROM user_data.users WHERE id = %s",
+            (id,),
+        )
+        (user,) = await cur.fetchone()
+
+        if user:
+            return UserDBO(id=user[0], name=user[1], email=user[2], password_hash=user[3])
+        else:
+            return None

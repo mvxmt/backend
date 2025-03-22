@@ -15,7 +15,6 @@ import db.chat_history as chat_history_db
 
 router = APIRouter(prefix="/chatHistory", tags=["Chat History"])
 
-
 @router.get("/all")
 async def all_threads_for_user(
     user: Annotated[UserDBO, Depends(get_current_user)], conn: DatabaseConnection
