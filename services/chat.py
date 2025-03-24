@@ -29,8 +29,10 @@ class GradedContext():
     id:int
     source:int
     text:str
-    grade:int
-    justification:str
+    relevance_grade:int
+    relevance_justification:str
+    hallucination_grade:int
+    hallucination_justification:str
 
 dotenv.load_dotenv()
 
@@ -92,21 +94,38 @@ async def chat(
                 approved_context = []
                 for entry in tqdm(context):
                     #Create new graded entry
-                    graded_entry = GradedContext()
+                    relevance_graded_entry = GradedContext()
                     #Fill with current values
-                    graded_entry.id = entry.id
-                    graded_entry.source = entry.source
-                    graded_entry.text = entry.text
+                    relevance_graded_entry.id = entry.id
+                    relevance_graded_entry.source = entry.source
+                    relevance_graded_entry.text = entry.text
                     #Fill new values
-                    graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
-                    if graded_entry.score != 0:
-                        approved_context.append(graded_entry)
+                    relevance_graded_entry.score,relevance_graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
+                    if relevance_graded_entry.score != 0:
+                        approved_context.append(relevance_graded_entry)
             except Exception as e:
                 print("Error: ",e)
             else:
                 print("Context Formatted")
 
-            #INSERT HALLUCINATION CHECK HERE
+            try:
+                print('Checking Hallucination...')
+                approved_context = []
+                for entry in tqdm(context):
+                    #Create new graded entry
+                    hallucination_graded_entry = GradedContext()
+                    #Fill with current values
+                    hallucination_graded_entry.id = entry.id
+                    hallucination_graded_entry.source = entry.source
+                    hallucination_graded_entry.text = entry.text
+                    #Fill new values
+                    hallucination_graded_entry.score,hallucination_graded_entry.justification = await pm.check_for_hallucination(entry.text,user_prompt)
+                    if hallucination_graded_entry.score != 0:
+                        approved_context.append(hallucination_graded_entry)
+            except Exception as e:
+                print("Error: ",e)
+            else:
+                print("Context Formatted")
 
             if len(approved_context) > 0:
                 try:
