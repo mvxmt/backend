@@ -5,6 +5,19 @@ class PromptManager:
     def __init__(self, model="llama3.2:3b"):
         self.model = model
 
+    async def split_response(self, response: str):
+        parts = response.split(",", 1) 
+        grade = 0
+        justification = ""
+
+        if len(parts) > 1:
+            if parts[0].isdigit():
+                grade = int(parts[0])
+            if not parts[1].isnumeric():
+                justification = parts[1]
+        
+        return grade, justification
+
     async def get_relevance(self, chunk: str, user_prompt: str):
         client = ollama.AsyncClient()
         relevance_primer = "\
@@ -34,21 +47,12 @@ the provided prompt it will receive a 0.\
         }
         try:
             response = await client.chat(model=self.model, messages=[message])
+            relevance = response["message"]["context"]
+            relevance_grade, relevance_justification = self.split_response(relevance)
+            return relevance_grade, relevance_justification
         except ollama.ResponseError as e:
             print("Error:", e.error)
 
-        relevance = response["message"]["content"]
-        relevance = relevance.split(",")
-        score = 0
-        justification = ""
-
-        if len(relevance) > 1:
-            if relevance[0].isnumeric():
-                score = int(relevance[0])
-            if not relevance[1].isnumeric():
-                justification = relevance[1]
-
-        return score, justification
 
     async def check_for_hallucination(self, answer: str):
         client = ollama.AsyncClient()
@@ -57,23 +61,26 @@ the provided prompt it will receive a 0.\
         scale, with 0 meaning unrealistic or not feasible and with 1 meaning realistic, factually possible, and 
         feasible. You will give a numerical grading corresponding to the criteria mentioned above and you will 
         provide justification as to why the numerical value was provided. If an answer builds upon current facts
-        but is not supported by evidence, you will give it a score of 0. Your response will be formated as a python
+        but is not supported by evidence, you will give it a grade of 0. Your response will be formated as a python
         dictionary with the following keys:
         numerical grade, justification 
         Do not include any additional formatting in your response and justify your reasoning with a single complete and
         concise sentence. 
         If an answer contains any content that is at all unrealistic or contains any content that is not at all feasible 
-        then the answer will receive a grade of 0. If any statement within the answer is incorrect the answer will also 
-        receive a grade of 0. If any math statements are provided with a solution, then the solution within the answer 
-        must be correct or else the answer will receive a grade of 0."""
+        then the answer will receive a grade of 0."""
 
-        message = {"role": "user", "content": f"{primer} <RESPONSE>{answer}</RESPONSE>"}
+        message = {
+            "role": "user", 
+            "content": f"{primer} <RESPONSE>{answer}</RESPONSE>"
+            }
         try:
             response = await client.chat(model=self.model, messages=[message])
+            legitimacy = response["message"]["content"]
+            hallucination_grade, hallucination_justification = self.split_response(legitimacy)
+            return hallucination_grade, hallucination_justification
         except ollama.ResponseError as e:
             print("Error: ", e.error)
 
-        return response["message"]["content"]
 
     async def load_context(self, ctx: list, user_prompt: str):
         client = ollama.AsyncClient()
@@ -93,26 +100,32 @@ portion of each provided context source and you will not mention that you were u
             print("Error:", e.error)
         return response["message"]["content"]
 
+
     async def raw_answer(self, prompt: str):
         client = ollama.AsyncClient()
+        message = {"role": "user", "content": prompt}
         try:
-            stream = await client.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                stream=True,
-            )
-
-            async for chunk in stream:
-                yield chunk["message"]["content"]
-
+            response = await client.chat(model=self.model, messages=[message])
         except ollama.ResponseError as e:
-            print("Error: ", e.error)
+            print("Error:", e.error)
+        return response["message"]["content"]
+    
+    
+    
+
+    async def validate_output(self, answer: str, ctx: list, user_prompt: str, max_retries=3):
+        grade, justification = await self.check_for_hallucination(answer)
+
+        if grade == 1:
+            return answer 
+
+        for _ in range(max_retries):
+            new_answer = await self.load_context(ctx, user_prompt)
+            grade, justification = await self.check_for_hallucination(new_answer)
+
+            if grade == 1:
+                return new_answer 
+
+        return answer
 
 
-#        client = ollama.AsyncClient()
-#        message = {"role": "user", "content": prompt}
-#        try:
-#            response = await client.chat(model=self.model, messages=[message])
-#        except ollama.ResponseError as e:
-#            print("Error:", e.error)
-#        return response["message"]["content"]
