@@ -1,6 +1,10 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+class Session(BaseModel):
+    token: str
+    expires_at: datetime
+    user_id: str
 
 class User(BaseModel):
     name: str

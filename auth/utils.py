@@ -4,7 +4,8 @@ import os
 
 from auth.hasher import verify_password
 from psycopg import AsyncConnection
-from db.users import get_user_by_email
+from auth.models import UserDBO
+from db.users import get_user_by_email, insert_session
 import secrets
 
 
@@ -35,8 +36,17 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token():
-    return secrets.token_hex(16)
+async def create_refresh_token(conn: AsyncConnection, expires_delta: timedelta, user_id: int):
+    token = secrets.token_hex(16)
+
+    await insert_session(
+        conn,
+        token,
+        datetime.now(timezone.utc) + expires_delta,
+        user_id
+    )
+
+    return token
     # if not expires_delta:
     #     expires_delta = timedelta(
     #         days=int(os.environ["JWT_REFRESH_TOKEN_EXP_DAYS"])

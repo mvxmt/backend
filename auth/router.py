@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -40,10 +41,8 @@ async def get_current_user(
 
     return user
 
-async def get_refresh_token(
-    db: DatabaseConnection,
-    req: Request
-):
+
+async def get_refresh_token(conn: DatabaseConnection, req: Request) -> RefreshTokenInfo:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -53,9 +52,12 @@ async def get_refresh_token(
     if not refresh_token:
         raise credentials_exception
 
-    # TODO: Validate refresh token from the db
+    db_refresh_token = await db.users.get_refresh_token(conn, refresh_token)
 
-    return refresh_token
+    if not db_refresh_token:
+        raise credentials_exception
+
+    return db_refresh_token
 
 
 @router.post("/token")
@@ -73,28 +75,47 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(data={"sub": user.id})
-    
-    response.set_cookie("refresh_token", httponly=True, samesite="lax", max_age=settings.jwt_refresh_token_exp_days*60*60*24)
+    refresh_token = await create_refresh_token(
+        conn, timedelta(days=settings.refresh_token_exp_days), user.id
+    )
+
+    response.set_cookie(
+        "refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=settings.refresh_token_exp_days * 60 * 60 * 24,
+    )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.post("/refresh")
 async def refresh_all_tokens(
-    req: Request,
     res: Response,
     refresh_token: Annotated[RefreshTokenInfo, Depends(get_refresh_token)],
     conn: DatabaseConnection,
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[Settings, Depends(get_settings)],
 ):
-    # TODO: invalidate old refresh token
-
-    res.set_cookie(key="refresh_token", value=create_refresh_token(), httponly=True, samesite="lax", max_age=settings.jwt_refresh_token_exp_days*60*60*24)
+    await db.users.refresh_session_expiry(
+        conn,
+        refresh_token,
+        refresh_token.exp + timedelta(days=settings.refresh_token_exp_days),
+    )
+    res.set_cookie(
+        key="refresh_token",
+        value=refresh_token.token,
+        httponly=True,
+        samesite="lax",
+        max_age=settings.refresh_token_exp_days * 60 * 60 * 24,
+    )
     access_token = create_access_token(data={"sub": refresh_token.user_id})
 
-    return {"access_token": access_token, }
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
-    
-    
 
 @router.get("/users/me")
 async def read_users_me(

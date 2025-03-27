@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: JWTAlgorithm
     jwt_access_token_exp_minutes: int = 30
-    jwt_refresh_token_exp_days: int = 365
+    refresh_token_exp_days: int = 365
 
     postgres_host: str
     postgres_user: str
