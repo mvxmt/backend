@@ -28,8 +28,10 @@ async def insert_session(
         )
         await conn.commit()
 
+    return await get_session_token(conn, token)
 
-async def refresh_session_expiry(
+
+async def update_session_expiry(
     conn: psycopg.AsyncConnection, token: str, new_expires_at: datetime
 ):
     async with conn.cursor() as cur:
@@ -41,21 +43,26 @@ async def refresh_session_expiry(
             ),
         )
         await conn.commit()
-    
 
 
-async def get_refresh_token(conn: psycopg.AsyncConnection, token: str):
+async def delete_session(conn: psycopg.AsyncConnection, token: str):
+    async with conn.cursor() as cur:
+        await cur.execute("DELETE FROM user_data.sessions WHERE token = %s", (token,))
+        await conn.commit()
+
+async def get_session_token(conn: psycopg.AsyncConnection, token: str):
     async with conn.cursor() as cur:
         await cur.execute(
-            "SELECT (token, expires_at, user_id) FROM user_data.sessions WHERE token = %s",
+            "SELECT (token, expires_at, user_id) FROM user_data.sessions WHERE token = %s AND expires_at > now()",
             (token,),
         )
-        (db_token,) = await cur.fetchone()
+        row = await cur.fetchone()
 
-        if db_token:
-            return RefreshTokenInfo(
-                token=db_token[0], exp=db_token[1], user_id=db_token[2]
-            )
+        if row:
+            db_token = row[0]
+            # psycopg doesn't convert automatically
+            exp = datetime.fromisoformat(db_token[1])
+            return RefreshTokenInfo(token=db_token[0], exp=exp, user_id=db_token[2])
         else:
             return None
 
@@ -68,9 +75,10 @@ async def get_user_by_email(
             "SELECT (id, name, email, password_hash) FROM user_data.users WHERE email = %s",
             (email,),
         )
-        (user,) = await cur.fetchone()
+        row = await cur.fetchone()
 
-        if user:
+        if row:
+            user = row[0]
             return UserDBO(
                 id=user[0], name=user[1], email=user[2], password_hash=user[3]
             )

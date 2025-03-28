@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 
 from auth.models import RefreshTokenInfo, User, UserRegistration
-from auth.utils import authenticate_user, create_access_token, create_refresh_token
+from auth.utils import authenticate_user, create_access_token, create_refresh_token, refresh_token_expiry
 from config import Settings, get_settings
 from db.client import DatabaseConnection
 import db.users
@@ -13,6 +13,7 @@ import db.users
 router = APIRouter(prefix="/auth")
 oauth2_scheme = OAuth2PasswordBearer("/auth/token")
 
+REFRESH_TOKEN_COOKIE = "refresh_token"
 
 async def get_current_user(
     conn: DatabaseConnection,
@@ -52,7 +53,7 @@ async def get_refresh_token(conn: DatabaseConnection, req: Request) -> RefreshTo
     if not refresh_token:
         raise credentials_exception
 
-    db_refresh_token = await db.users.get_refresh_token(conn, refresh_token)
+    db_refresh_token = await db.users.get_session_token(conn, refresh_token)
 
     if not db_refresh_token:
         raise credentials_exception
@@ -74,17 +75,17 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"sub": user.id})
+    access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = await create_refresh_token(
         conn, timedelta(days=settings.refresh_token_exp_days), user.id
     )
 
     response.set_cookie(
-        "refresh_token",
-        value=refresh_token,
+        REFRESH_TOKEN_COOKIE,
+        value=refresh_token.token,
         httponly=True,
         samesite="lax",
-        max_age=settings.refresh_token_exp_days * 60 * 60 * 24,
+        expires=refresh_token.exp
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -97,17 +98,17 @@ async def refresh_all_tokens(
     conn: DatabaseConnection,
     settings: Annotated[Settings, Depends(get_settings)],
 ):
-    await db.users.refresh_session_expiry(
-        conn,
-        refresh_token,
-        refresh_token.exp + timedelta(days=settings.refresh_token_exp_days),
-    )
+    new_token = await refresh_token_expiry(conn, refresh_token, timedelta(days=settings.refresh_token_exp_days))
+
+    if not new_token:
+        raise HTTPException(500)
+
     res.set_cookie(
-        key="refresh_token",
-        value=refresh_token.token,
+        key=REFRESH_TOKEN_COOKIE,
+        value=new_token.token,
         httponly=True,
         samesite="lax",
-        max_age=settings.refresh_token_exp_days * 60 * 60 * 24,
+        expires=new_token.exp
     )
     access_token = create_access_token(data={"sub": refresh_token.user_id})
 
@@ -115,6 +116,15 @@ async def refresh_all_tokens(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.post("/logout")
+async def logout(
+    res: Response,
+    refresh_token: Annotated[RefreshTokenInfo, Depends(get_refresh_token)],
+    conn: DatabaseConnection,
+):
+    await db.users.delete_session(conn, refresh_token.token)
+    res.delete_cookie(REFRESH_TOKEN_COOKIE)
 
 
 @router.get("/users/me")
