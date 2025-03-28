@@ -4,7 +4,7 @@ import os
 
 from auth.hasher import verify_password
 from psycopg import AsyncConnection
-from auth.models import RefreshTokenInfo, UserDBO
+from auth.models import RefreshTokenInfo
 from db.users import get_user_by_email, insert_session, update_session_expiry, get_session_token
 import secrets
 
