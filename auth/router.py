@@ -110,7 +110,7 @@ async def refresh_all_tokens(
         samesite="lax",
         expires=new_token.exp
     )
-    access_token = create_access_token(data={"sub": refresh_token.user_id})
+    access_token = create_access_token(data={"sub": str(refresh_token.user_id)})
 
     return {
         "access_token": access_token,
