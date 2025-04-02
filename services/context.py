@@ -25,7 +25,7 @@ class ContextManager:
         """
         chunk_list = [
             RAGContext(
-                id=row[0], source=row[1], text=row[2]#self.crypto.decrypt_string(row[2])
+                id=row[0], source=row[1], self.crypto.decrypt_string(row[2])
             )
             for row in result
         ]
