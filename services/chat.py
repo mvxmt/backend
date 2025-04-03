@@ -113,7 +113,7 @@ async def chat(
                     print('Answering Prompt With Context...')
                     #answer = await pm.load_context(context,user_prompt)
                     #response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
-                    return StreamingResponse(pm.load_context(user_prompt))
+                    return StreamingResponse(pm.load_context(context,user_prompt))
                 except Exception as e:
                     print("Error: ",e)
             else:
