@@ -26,3 +26,14 @@ async def get_all_files_for_user(
             )
         )
     return files
+
+async def delete_file_by_id(
+        conn: psycopg.AsyncConnection, 
+        user_id:int, 
+        document_id: int):
+    await conn.execute(
+        "DELETE FROM document_data.documents WHERE id=%s AND document_id=%s",
+        (user_id,
+         document_id,),
+    )
+    await conn.commit()

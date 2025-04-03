@@ -19,3 +19,14 @@ async def all_files_for_user(
     user: Annotated[UserDBO, Depends(get_current_user)], conn: DatabaseConnection
 ) -> list[files_db.Document]:
     return await files_db.get_all_files_for_user(conn,user.id)
+
+@router.get("/delete")
+async def delet_file_by_id(
+    user: Annotated[UserDBO, Depends(get_current_user)],
+    document_id: int,
+    conn: DatabaseConnection,
+):
+    try:
+        await files_db.delete_file_by_id(conn, user.id, document_id)
+    except AssertionError:
+        raise HTTPException(404)
