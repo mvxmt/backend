@@ -2,7 +2,7 @@ import psycopg
 from pydantic import BaseModel
 
 class Document(BaseModel):
-    id:int
+    id:str
     owner:int
     filename:str
 
