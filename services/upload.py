@@ -20,7 +20,7 @@ dotenv.load_dotenv()
 router = APIRouter(prefix="/file")
 settings = get_settings()
 
-async def insert_chunks(conn, document_id: int, chunks: list[str]):
+async def insert_chunks(conn, document_id: str, chunks: list[str]):
         cm = DatabaseChunkManager(conn)
         em = EmbedManager()
         crypto = CryptographyManager.from_settings(settings)
