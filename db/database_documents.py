@@ -1,4 +1,5 @@
 import psycopg
+from ulid import ULID
 from pydantic import BaseModel
 
 class Document(BaseModel):
@@ -6,12 +7,11 @@ class Document(BaseModel):
     owner:int
     filename:str
 
-
 class DatabaseDocumentManager:
     def __init__(self, conn: psycopg.AsyncConnection):
         self.__conn = conn
 
-    async def get_document_by_id(self, id: int):
+    async def get_document_by_id(self, id: str):
         select_query = "SELECT * FROM document_data.documents WHERE ID = %s"
         async with self.__conn.cursor() as cur:
             await cur.execute(select_query, (id,))
@@ -20,19 +20,20 @@ class DatabaseDocumentManager:
 
     async def insert_document(self, owner: int, filename: str):
         insert_query = (
-            "INSERT INTO document_data.documents (owner, filename) VALUES (%s, %s) RETURNING id"
+            "INSERT INTO document_data.documents (id, owner, filename) VALUES (%s, %s, %s)"
         )
+        doc_id = ULID()
         async with self.__conn.cursor() as cur:
             await cur.execute(
                 insert_query,
                 (
+                    str(doc_id),
                     owner,
                     filename
                 ),
             )
-            doc_id = (await cur.fetchone())[0]
             await self.__conn.commit()
-            return doc_id
+            return str(doc_id)
 
     async def get_all_files_for_user(self,user_id: int) -> list[Document]:
         sel_query="SELECT * FROM document_data.documents WHERE owner = %s"
