@@ -22,8 +22,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ADD . /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
-
+    uv sync --frozen --no-dev && \
+    uv pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-fastapi && \
+    uv run opentelemetry-bootstrap -a requirements | uv pip install --requirement -
+    
 # Then, use a final image without uv
 FROM debian:bookworm-slim
 
@@ -37,4 +39,4 @@ COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the FastAPI application by default
-CMD ["fastapi", "run", "--host", "0.0.0.0", "/app/main.py"]
+CMD ["opentelemetry-instrument", "fastapi", "run", "--host", "0.0.0.0", "/app/main.py"]
