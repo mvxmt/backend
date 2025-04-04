@@ -36,12 +36,6 @@ dotenv.load_dotenv()
 
 router = APIRouter(prefix="/chat")
 
-async def stream_answer(response:Response,stream_speed:float=0.01):
-     for chunk in response.message:
-        for letter in chunk:
-            yield letter
-            await asyncio.sleep(stream_speed)
-
 @router.post("/response")
 async def chat(
     user_prompt:Annotated[str,Form()],
@@ -49,8 +43,8 @@ async def chat(
     ):
 
     em = EmbedManager()
-    cm = CryptographyManager.from_settings(settings)
-    ctx = ContextManager(cm)
+    crypto = CryptographyManager.from_settings(settings)
+    ctx = ContextManager(crypto)
     pm = PromptManager()
 
     print("Submitted Prompt:",user_prompt)
