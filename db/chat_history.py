@@ -2,9 +2,10 @@ import psycopg
 import uuid
 from pydantic import BaseModel, TypeAdapter
 from typing import Literal
+from ulid import ULID
 
 class ChatMessage(BaseModel):
-    id: uuid.UUID
+    id: ULID
     role: Literal["assistant", "user"]
     message: str
 
