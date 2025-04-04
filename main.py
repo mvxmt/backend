@@ -9,6 +9,7 @@ from auth.router import router as AuthRouter
 from services.chat import router as ChatRouter
 from services.upload import router as UploadRouter
 from services.chat_history import router as ChatHistoryRouter
+from services.files import router as FilesRouter
 from config import get_settings
 
 dotenv.load_dotenv()
@@ -18,6 +19,7 @@ app.include_router(AuthRouter)
 app.include_router(ChatRouter)
 app.include_router(UploadRouter)
 app.include_router(ChatHistoryRouter)
+app.include_router(FilesRouter)
 
 settings = get_settings()
 

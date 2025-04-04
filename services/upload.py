@@ -36,7 +36,7 @@ async def insert_chunks(conn, document_id: str, chunks: list[str]):
 # Main Driver Function, should route what needs to occur
 # on document upload.
 #Take in a filepath and the filetype
-@router.post("/upload")
+@router.post("/upload", status_code=201)
 async def on_upload(src_file:UploadFile, user_id:int):
     async for conn in get_database_session():
         parser = Parser()

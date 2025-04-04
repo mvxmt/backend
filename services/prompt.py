@@ -93,6 +93,7 @@ portion of each provided context source and you will not mention that you were u
             print("Error:", e.error)
         return response["message"]["content"]
 
+
     async def raw_answer(self, prompt: str):
         client = ollama.AsyncClient()
         try:

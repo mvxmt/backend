@@ -1,5 +1,11 @@
 import psycopg
 from ulid import ULID
+from pydantic import BaseModel
+
+class Document(BaseModel):
+    id:str
+    owner:int
+    filename:str
 
 class DatabaseDocumentManager:
     def __init__(self, conn: psycopg.AsyncConnection):
@@ -29,9 +35,28 @@ class DatabaseDocumentManager:
             await self.__conn.commit()
             return str(doc_id)
 
-
-    async def delete_document(self, id: str):
-        delete_query = "DELETE FROM document_data.documents WHERE ID = %s"
+    async def get_all_files_for_user(self,user_id: int) -> list[Document]:
+        sel_query="SELECT * FROM document_data.documents WHERE owner = %s"
         async with self.__conn.cursor() as cur:
-            await cur.execute(delete_query, (id,))
-            await self.__conn.commit()
+            await cur.execute(sel_query,(user_id,),)
+            files: list[Document] = []
+            results = await cur.fetchall()
+            for file in results:
+                files.append(
+                    Document(
+                        id=file[0],
+                        owner=file[1],
+                        filename=file[2],
+                    )
+                )
+        return files
+
+    async def delete_file_by_id(self, user_id:int, document_id: str):
+        del_query = "DELETE FROM document_data.documents WHERE id=%s AND document_id=%s"
+        async with self.__conn.cursor() as cur:
+            await cur.execute(
+                del_query,
+                (user_id,
+                document_id,),
+            )
+        await self.__conn.commit()

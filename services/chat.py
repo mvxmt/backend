@@ -3,7 +3,6 @@ import sys
 # sys hacks to get imports to work
 sys.path.append("./")
 
-import asyncio
 import dotenv
 from tqdm import tqdm
 from db.client import get_database_session
@@ -36,12 +35,6 @@ dotenv.load_dotenv()
 
 router = APIRouter(prefix="/chat")
 
-async def stream_answer(response:Response,stream_speed:float=0.01):
-     for chunk in response.message:
-        for letter in chunk:
-            yield letter
-            await asyncio.sleep(stream_speed)
-
 @router.post("/response")
 async def chat(
     user_prompt:Annotated[str,Form()],
@@ -49,8 +42,8 @@ async def chat(
     ):
 
     em = EmbedManager()
-    cm = CryptographyManager.from_settings(settings)
-    ctx = ContextManager(cm)
+    crypto = CryptographyManager.from_settings(settings)
+    ctx = ContextManager(crypto)
     pm = PromptManager()
 
     print("Submitted Prompt:",user_prompt)
@@ -113,7 +106,7 @@ async def chat(
                     print('Answering Prompt With Context...')
                     #answer = await pm.load_context(context,user_prompt)
                     #response = Response(id=str(uuid.uuid4()),role='assistant',message=answer)
-                    return StreamingResponse(pm.load_context(user_prompt))
+                    return StreamingResponse(pm.load_context(context,user_prompt))
                 except Exception as e:
                     print("Error: ",e)
             else:
