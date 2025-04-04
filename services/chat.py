@@ -3,7 +3,6 @@ import sys
 # sys hacks to get imports to work
 sys.path.append("./")
 
-import asyncio
 import dotenv
 from tqdm import tqdm
 from db.client import get_database_session
