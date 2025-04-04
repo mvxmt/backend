@@ -7,7 +7,7 @@ class DatabaseChunkManager:
         self.__conn = conn
 
     async def insert_chunk(
-        self, source_id: int, chunk_text: str, chunk_vector: np.array
+        self, source_id: str, chunk_text: str, chunk_vector: np.array
     ):
         insert_query = "INSERT INTO document_data.chunks (source_id,chunk_text,chunk_vector) VALUES (%s,%s,%s)"
         async with self.__conn.cursor() as cur:
