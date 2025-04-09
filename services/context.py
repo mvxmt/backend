@@ -8,25 +8,25 @@ class IndexableBaseModel(BaseModel):
 
 class RAGContext(IndexableBaseModel):
     id: int
-    source: int
+    source: str
     text: str
 
 class ContextManager:
     def __init__(self, crypto: CryptographyManager):
         self.crypto = crypto
 
-    def get_context(self, result: tuple):
-        # each tuple contains
+    def get_context(self, chunks: BaseModel):
         """
-        index 0: id
-        index 1: document_id
-        index 2: chunk_text
-        index 3: chunk_vector
+        Takes in pydantic model consisting of:
+        id: int
+        source: str
+        test: str
+        distance: str
         """
         chunk_list = [
             RAGContext(
-                id=row[0], source=row[1], text=row[2]#self.crypto.decrypt_string(row[2])
+                id=chunk.id, source=chunk.source, text=self.crypto.decrypt_string(chunk.text)
             )
-            for row in result
+            for chunk in chunks
         ]
         return chunk_list

@@ -23,14 +23,15 @@ class DatabaseChunkManager:
             await cur.execute(delete_query, (id,))
             await self.__conn.commit()
 
-    async def get_related_chunks(self, vector: np.ndarray):
+    async def get_related_chunks(self, vector: np.ndarray, distance:float=0.5):
         select_query = """
-                        SELECT *
+                        SELECT id, source_id, chunk_text, chunk_vector, chunk_vector <=> %s::vector as distance
                         FROM document_data.chunks
+                        WHERE chunk_vector <=> %s::vector < %s::float
                         ORDER BY 1 - (chunk_vector <=> %s::vector) DESC
                         LIMIT 10
                         """
         async with self.__conn.cursor() as cur:
-            await cur.execute(select_query, (vector.tolist(),))
+            await cur.execute(select_query, (vector.tolist(),vector.tolist(),distance,vector.tolist(),))
             rows = await cur.fetchall()
             return rows
