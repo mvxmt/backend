@@ -79,20 +79,25 @@ the provided prompt it will receive a 0.\
         client = ollama.AsyncClient()
         primer = 'You are an expert in the subject matter contained between the <PROMPT></PROMPT> tag. \
 The users original prompt will be contained within that same <PROMPT></PROMPT> tag. You are to expand and \
-augment your own answer by using the provided context contained within the <CONTEXT></CONTEXT> tags. \
-You will ensure your answer takes into consideration the provided context when you answer the users prompt. \
+augment your own answer by using the provided context contained within the <CONTEXT></CONTEXT> tags wihtout \
+simply repeating the information verbatim. You will ensure your answer takes into consideration the provided \
+context when you answer the users prompt. \
 When using the provided context your answer you will ignore everything but the "text" \
 portion of each provided context source and you will not mention that you were using context.'
-        message = {
-            "role": "user",
-            "content": f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
-        }
         try:
-            response = await client.chat(model=self.model, messages=[message])
-        except ollama.ResponseError as e:
-            print("Error:", e.error)
-        return response["message"]["content"]
+            stream = await client.chat(
+                model=self.model,
+                messages=[{
+                    "role":"user",
+                    "content":f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
+                }],
+                stream=True
+            )
 
+            async for chunk in stream:
+                yield chunk["message"]["content"]
+        except ollama.ResponseError as e:
+            print("Error: ", e.error)
 
     async def raw_answer(self, prompt: str):
         client = ollama.AsyncClient()
@@ -108,12 +113,3 @@ portion of each provided context source and you will not mention that you were u
 
         except ollama.ResponseError as e:
             print("Error: ", e.error)
-
-
-#        client = ollama.AsyncClient()
-#        message = {"role": "user", "content": prompt}
-#        try:
-#            response = await client.chat(model=self.model, messages=[message])
-#        except ollama.ResponseError as e:
-#            print("Error:", e.error)
-#        return response["message"]["content"]
