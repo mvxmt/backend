@@ -18,6 +18,9 @@ from fastapi import APIRouter, Form, Depends
 from fastapi.responses import StreamingResponse
 from typing import Annotated
 from pydantic import BaseModel
+#AUTH
+from auth.models import UserDBO
+from auth.router import get_current_user
 
 class Response(BaseModel):
     id:str
@@ -32,6 +35,7 @@ class GradedContext():
     justification:str
 
 class Chunk(BaseModel):
+    owner:int
     id: int
     source: str
     text:str
@@ -40,10 +44,11 @@ class Chunk(BaseModel):
 
 dotenv.load_dotenv()
 
-router = APIRouter(prefix="/chat")
+router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("/response")
 async def chat(
+    user: Annotated[UserDBO, Depends(get_current_user)],
     user_prompt:Annotated[str,Form()],
     settings: Annotated[Settings, Depends(get_settings)]
     ):
@@ -73,7 +78,7 @@ async def chat(
 
             try:
                 print("Fetching Nearby Chunks...")
-                results = await cm.get_related_chunks(embed,0.3)
+                results = await cm.get_related_chunks(embed,user.id,0.3)
             except Exception as e:
                 print("Error: ",e)
             else:
@@ -81,10 +86,11 @@ async def chat(
                 retrieved_chunks = []
                 for result in results:
                     chunk = Chunk(
-                        id=result[0],
-                        source=result[1],
-                        text=result[2],
-                        distance=result[3])
+                        owner=result[0],
+                        id=result[1],
+                        source=result[2],
+                        text=result[3],
+                        distance=result[4])
                     retrieved_chunks.append(chunk)
 
             try:

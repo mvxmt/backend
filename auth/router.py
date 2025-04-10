@@ -10,7 +10,7 @@ from config import Settings, get_settings
 from db.client import DatabaseConnection
 import db.users
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Auth"])
 oauth2_scheme = OAuth2PasswordBearer("/auth/token")
 
 REFRESH_TOKEN_COOKIE = "refresh_token"
