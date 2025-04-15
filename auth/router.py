@@ -4,21 +4,37 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 
-from auth.models import RefreshTokenInfo, User, UserRegistration
+from auth.models import RefreshTokenInfo, User, UserDBO, UserRegistration
 from auth.utils import authenticate_user, create_access_token, create_refresh_token, refresh_token_expiry
 from config import Settings, get_settings
 from db.client import DatabaseConnection
 import db.users
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Auth"])
 oauth2_scheme = OAuth2PasswordBearer("/auth/token")
 
 REFRESH_TOKEN_COOKIE = "refresh_token"
 
-async def get_current_user(
+async def maybe_get_current_user(
     conn: DatabaseConnection,
     token: Annotated[str, Depends(oauth2_scheme)],
     settings: Annotated[Settings, Depends(get_settings)],
+):
+    try:
+        payload = jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm.value]
+        )
+        id: str = payload.get("sub")
+        if id is None:
+            return None
+    except jwt.InvalidTokenError:
+        return None
+
+    user = await db.users.get_user_by_id(conn, int(id))
+    return user
+
+async def get_current_user(
+    user: Annotated[UserDBO | None, Depends(maybe_get_current_user)]
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -26,22 +42,10 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm.value]
-        )
-        id: str = payload.get("sub")
-        if id is None:
-            raise credentials_exception
-    except jwt.InvalidTokenError:
+    if not user:
         raise credentials_exception
-
-    user = await db.users.get_user_by_id(conn, int(id))
-    if user is None:
-        raise credentials_exception
-
+    
     return user
-
 
 async def get_refresh_token(conn: DatabaseConnection, req: Request) -> RefreshTokenInfo:
     credentials_exception = HTTPException(

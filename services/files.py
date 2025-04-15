@@ -12,7 +12,7 @@ from typing import Annotated
 from auth.router import get_current_user
 from db.database_documents import DatabaseDocumentManager, Document
 
-router = APIRouter(prefix="/files", tags=["File Retrieval"])
+router = APIRouter(prefix="/files", tags=["Files"])
 
 @router.get("/retrieve")
 async def all_files_for_user(
