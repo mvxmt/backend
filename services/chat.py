@@ -48,7 +48,7 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("/auth_response")
 async def auth_chat(
-    user_prompt:Annotated[str,Form()],
+    user_prompt:Annotated[str, Form()],
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[UserDBO, Depends(get_current_user)]
     ):
