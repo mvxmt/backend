@@ -31,9 +31,8 @@ class DatabaseChunkManager:
         select_query = """
                 SELECT document_data.documents.owner as owner, document_data.chunks.id, source_id, chunk_text, chunk_vector, chunk_vector <=> %s::vector as distance
                 FROM document_data.chunks
-                WHERE chunk_vector <=> %s::vector < %s::float
                 JOIN document_data.documents on document_data.chunks.source_id = document_data.documents.id
-                WHERE owner = %s::int
+                WHERE chunk_vector <=> %s::vector < %s::float AND owner = %s::int
                 ORDER BY 1 - (chunk_vector <=> %s::vector) DESC
                 LIMIT 10
                         """

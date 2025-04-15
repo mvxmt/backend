@@ -46,11 +46,11 @@ dotenv.load_dotenv()
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
-@router.post("/response")
-async def chat(
-    user: Annotated[UserDBO, Depends(get_current_user)],
+@router.post("/auth_response")
+async def auth_chat(
     user_prompt:Annotated[str,Form()],
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[UserDBO, Depends(get_current_user)]
     ):
 
     em = EmbedManager()
@@ -134,3 +134,19 @@ async def chat(
                     return StreamingResponse(pm.raw_answer(user_prompt))
                 except Exception as e:
                     print("Error: ",e)
+
+@router.post("/response")
+async def chat(
+    user_prompt:Annotated[str,Form()],
+    ):
+    pm = PromptManager()
+
+    print("Submitted Prompt:",user_prompt)
+    print("Unathenticated user: To get contextual prompts please login")
+
+    try:
+        print('Answering Prompt without Context...')
+        return StreamingResponse(pm.raw_answer(user_prompt))
+    except Exception as e:
+        print("Error: ",e)
+
