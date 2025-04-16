@@ -56,7 +56,10 @@ async def on_upload(user: Annotated[UserDBO, Depends(get_current_user)], src_fil
         await src_file.close()
 
         #Chunk Document
-        chunks =  await parser.get_content_chunks(content)
-
-        #Insert Chunks into DB
-        await insert_chunks(conn,source_id,chunks)
+        try:
+            chunks =  await parser.get_content_chunks(content)
+        except Exception as e:
+                print("Error: ",e)
+        else:
+            #Insert Chunks into DB
+            await insert_chunks(conn,source_id,chunks)

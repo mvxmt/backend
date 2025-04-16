@@ -52,7 +52,7 @@ class DatabaseDocumentManager:
         return files
 
     async def delete_file_by_id(self, user_id:int, document_id: str):
-        del_query = "DELETE FROM document_data.documents WHERE id=%s AND document_id=%s"
+        del_query = "DELETE FROM document_data.documents WHERE owner=%s AND id=%s"
         async with self.__conn.cursor() as cur:
             await cur.execute(
                 del_query,
