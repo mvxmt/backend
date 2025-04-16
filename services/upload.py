@@ -41,8 +41,7 @@ async def insert_chunks(conn, document_id: str, chunks: list[str]):
 # on document upload.
 #Take in a filepath and the filetype
 @router.post("/upload", status_code=201)
-async def on_upload(user: Annotated[UserDBO, Depends(get_current_user)], 
-                    src_file: Annotated[bytes, File()]):
+async def on_upload(user: Annotated[UserDBO, Depends(get_current_user)], src_file : UploadFile):
     async for conn in get_database_session():
         parser = Parser()
         #Get File Name
