@@ -9,7 +9,7 @@ from auth.router import get_current_user
 
 import dotenv
 
-from fastapi import  APIRouter, Depends, File, UploadFile
+from fastapi import  APIRouter, Depends, UploadFile
 
 from db.database_chunks import DatabaseChunkManager
 from db.database_documents import DatabaseDocumentManager
