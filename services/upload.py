@@ -2,10 +2,14 @@ import sys
 
 # sys hacks to get imports to work
 sys.path.append("./")
+from typing import Annotated
+
+from auth.models import UserDBO
+from auth.router import get_current_user
 
 import dotenv
 
-from fastapi import  APIRouter, UploadFile
+from fastapi import  APIRouter, Depends, UploadFile
 
 from db.database_chunks import DatabaseChunkManager
 from db.database_documents import DatabaseDocumentManager
@@ -37,14 +41,14 @@ async def insert_chunks(conn, document_id: str, chunks: list[str]):
 # on document upload.
 #Take in a filepath and the filetype
 @router.post("/upload", status_code=201)
-async def on_upload(src_file:UploadFile, user_id:int):
+async def on_upload(user: Annotated[UserDBO, Depends(get_current_user)], src_file : UploadFile):
     async for conn in get_database_session():
         parser = Parser()
         #Get File Name
         source = src_file.filename
         #Insert File Owner and File Name Into DB
         dm = DatabaseDocumentManager(conn)
-        source_id = await dm.insert_document(user_id,source)
+        source_id = await dm.insert_document(user.id, source)
         #Parse File
         content = await parser.get_document_content(src_file.file,src_file.content_type)
        
@@ -52,7 +56,10 @@ async def on_upload(src_file:UploadFile, user_id:int):
         await src_file.close()
 
         #Chunk Document
-        chunks =  await parser.get_content_chunks(content)
-
-        #Insert Chunks into DB
-        await insert_chunks(conn,source_id,chunks)
+        try:
+            chunks =  await parser.get_content_chunks(content)
+        except Exception as e:
+                print("Error: ",e)
+        else:
+            #Insert Chunks into DB
+            await insert_chunks(conn,source_id,chunks)
