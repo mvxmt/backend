@@ -20,7 +20,6 @@ from typing import Annotated
 from pydantic import BaseModel
 #AUTH
 from auth.models import UserDBO
-from auth.router import get_current_user
 from auth.router import maybe_get_current_user
 
 class Response(BaseModel):
