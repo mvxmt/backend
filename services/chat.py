@@ -18,6 +18,9 @@ from fastapi import APIRouter, Form, Depends
 from fastapi.responses import StreamingResponse
 from typing import Annotated
 from pydantic import BaseModel
+#AUTH
+from auth.models import UserDBO
+from auth.router import maybe_get_current_user
 
 class Response(BaseModel):
     id:str
@@ -32,6 +35,7 @@ class GradedContext():
     justification:str
 
 class Chunk(BaseModel):
+    owner:int
     id: int
     source: str
     text:str
@@ -40,12 +44,13 @@ class Chunk(BaseModel):
 
 dotenv.load_dotenv()
 
-router = APIRouter(prefix="/chat")
+router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("/response")
 async def chat(
-    user_prompt:Annotated[str,Form()],
-    settings: Annotated[Settings, Depends(get_settings)]
+    user_prompt:Annotated[str, Form()],
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[UserDBO | None, Depends(maybe_get_current_user)]
     ):
 
     em = EmbedManager()
@@ -71,52 +76,54 @@ async def chat(
             else:
                 print("Embedding Complete")
 
-            try:
-                print("Fetching Nearby Chunks...")
-                results = await cm.get_related_chunks(embed,0.3)
-            except Exception as e:
-                print("Error: ",e)
-            else:
-                print(f'{len(results)} Chunks Retrieved')
-                retrieved_chunks = []
-                for result in results:
-                    chunk = Chunk(
-                        id=result[0],
-                        source=result[1],
-                        text=result[2],
-                        distance=result[3])
-                    retrieved_chunks.append(chunk)
+            approved_context = []
+            if user:
+                try:
+                    print("Fetching Nearby Chunks...")
+                    results = await cm.get_related_chunks(embed,user.id,0.3)
+                except Exception as e:
+                    print("Error: ",e)
+                else:
+                    print(f'{len(results)} Chunks Retrieved')
+                    retrieved_chunks = []
+                    for result in results:
+                        chunk = Chunk(
+                            owner=result[0],
+                            id=result[1],
+                            source=result[2],
+                            text=result[3],
+                            distance=result[4])
+                        retrieved_chunks.append(chunk)
 
-            try:
-                print("Formatting Context...")
-                context = ctx.get_context(retrieved_chunks) #Decryption would need to happen here
-            except Exception as e:
-                print("Error: ",e)
-            else:
-                print("Context Formatted")
-        
-            try:
-                approved_context = []
-                if context:
-                    print('Grading Relevance...')
-                    for entry in tqdm(context):
-                        #Create new graded entry
-                        graded_entry = GradedContext()
-                        #Fill with current values
-                        graded_entry.id = entry.id
-                        graded_entry.source = entry.source
-                        graded_entry.text = entry.text
-                        #Fill new values
-                        graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
-                        if graded_entry.score != 0:
-                            approved_context.append(graded_entry)
-                    print("Grading Completed")
-            except Exception as e:
-                print("Error: ",e)
+                try:
+                    print("Formatting Context...")
+                    context = ctx.get_context(retrieved_chunks) #Decryption would need to happen here
+                except Exception as e:
+                    print("Error: ",e)
+                else:
+                    print("Context Formatted")
+            
+                try:
+                    if context:
+                        print('Grading Relevance...')
+                        for entry in tqdm(context):
+                            #Create new graded entry
+                            graded_entry = GradedContext()
+                            #Fill with current values
+                            graded_entry.id = entry.id
+                            graded_entry.source = entry.source
+                            graded_entry.text = entry.text
+                            #Fill new values
+                            graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
+                            if graded_entry.score != 0:
+                                approved_context.append(graded_entry)
+                        print(f"Grading Completed: {len(approved_context)} Chunks Approved")
+                except Exception as e:
+                    print("Error: ",e)
 
-            #INSERT HALLUCINATION CHECK HERE
+                #INSERT HALLUCINATION CHECK HERE
 
-            if len(approved_context) > 0:
+            if user and len(approved_context) > 0:
                 try:
                     print('Answering Prompt With Context...')
                     return StreamingResponse(pm.load_context(context,user_prompt))

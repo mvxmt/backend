@@ -21,7 +21,7 @@ from .parser import Parser
 from config import get_settings
 
 dotenv.load_dotenv()
-router = APIRouter(prefix="/file")
+router = APIRouter(prefix="/file",tags=["Files"])
 settings = get_settings()
 
 async def insert_chunks(conn, document_id: str, chunks: list[str]):
