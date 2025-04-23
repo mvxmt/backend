@@ -69,8 +69,11 @@ async def append_message_to_chat_thread_by_uid_cid(
     conn: psycopg.AsyncConnection, user_id: int, chat_id: uuid.UUID, msg: ChatMessage
 ):
     ct = await get_chat_thread_by_user_chat_id(conn, user_id, chat_id)
+
     if not ct:
-        raise AssertionError()
+        await conn.execute("INSERT INTO user_data.chat_threads (user_id, chat_thread_id) VALUES (%s, %s)", (user_id, chat_id))
+        await conn.commit()
+        ct = await get_chat_thread_by_user_chat_id(conn, user_id, chat_id)
 
     ct.thread.append(msg)
     await conn.execute(
