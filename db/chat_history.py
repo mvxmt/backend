@@ -78,6 +78,19 @@ async def append_message_to_chat_thread_by_uid_cid(
         (ChatMessageListAdapter.dump_json(ct.thread).decode(), user_id, chat_id),
     )
 
+async def set_chat_thread_name_by_uid_cid(
+    conn: psycopg.AsyncConnection, user_id: int, chat_id: uuid.UUID, name: str
+):
+    ct = await get_chat_thread_by_user_chat_id(conn, user_id, chat_id)
+    if not ct:
+        raise AssertionError()
+
+    await conn.execute(
+        "UPDATE user_data.chat_threads SET name = %s WHERE user_id = %s AND chat_thread_id = %s",
+        (name, user_id, chat_id),
+    )
+
+
 async def delete_chat_thread(conn: psycopg.AsyncConnection, user_id: int, chat_id: uuid.UUID):
     async with conn.cursor() as curr:
         await curr.execute(
