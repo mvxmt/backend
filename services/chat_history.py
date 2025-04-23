@@ -66,11 +66,12 @@ async def delete_chat_thread(
     
 @router.post("/rename")
 async def rename_chat_thread(
+    conn: DatabaseConnection,
     user: Annotated[UserDBO, Depends(get_current_user)],
     chat_thread_id: uuid.UUID,
-    conn: DatabaseConnection,
+    name: str
 ):
     try:
-        await chat_history_db.set_chat_thread_name_by_uid_cid(conn, user.id, chat_thread_id)
+        await chat_history_db.set_chat_thread_name_by_uid_cid(conn, user.id, chat_thread_id, name)
     except AssertionError:
         raise HTTPException(404)
