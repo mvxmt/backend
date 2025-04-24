@@ -40,5 +40,8 @@ COPY --from=builder --chown=app:app /app /app
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Download NLTK datasets
+RUN python -m nltk.downloader punkt
+
 # Run the FastAPI application by default
 CMD ["opentelemetry-instrument", "fastapi", "run", "--host", "0.0.0.0", "/app/main.py"]
