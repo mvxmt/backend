@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.6
--- Dumped by pg_dump version 16.6
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -58,7 +58,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE document_data.chunks (
     id bigint NOT NULL,
-    source_id integer,
+    source_id character varying(26),
     chunk_text text,
     chunk_vector public.vector(768)
 );
@@ -93,7 +93,7 @@ ALTER SEQUENCE document_data.chunks_id_seq OWNED BY document_data.chunks.id;
 --
 
 CREATE TABLE document_data.documents (
-    id integer NOT NULL,
+    id character varying(26) NOT NULL,
     owner integer,
     filename character varying NOT NULL
 );
@@ -139,6 +139,19 @@ CREATE TABLE user_data.chat_threads (
 ALTER TABLE user_data.chat_threads OWNER TO postgres;
 
 --
+-- Name: sessions; Type: TABLE; Schema: user_data; Owner: postgres
+--
+
+CREATE TABLE user_data.sessions (
+    token text NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+ALTER TABLE user_data.sessions OWNER TO postgres;
+
+--
 -- Name: users; Type: TABLE; Schema: user_data; Owner: postgres
 --
 
@@ -182,13 +195,6 @@ ALTER TABLE ONLY document_data.chunks ALTER COLUMN id SET DEFAULT nextval('docum
 
 
 --
--- Name: documents id; Type: DEFAULT; Schema: document_data; Owner: postgres
---
-
-ALTER TABLE ONLY document_data.documents ALTER COLUMN id SET DEFAULT nextval('document_data.document_id_seq'::regclass);
-
-
---
 -- Name: users id; Type: DEFAULT; Schema: user_data; Owner: postgres
 --
 
@@ -220,6 +226,14 @@ ALTER TABLE ONLY user_data.chat_threads
 
 
 --
+-- Name: sessions sessions_pk; Type: CONSTRAINT; Schema: user_data; Owner: postgres
+--
+
+ALTER TABLE ONLY user_data.sessions
+    ADD CONSTRAINT sessions_pk PRIMARY KEY (token);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: user_data; Owner: postgres
 --
 
@@ -228,11 +242,11 @@ ALTER TABLE ONLY user_data.users
 
 
 --
--- Name: chunks fk_document_id; Type: FK CONSTRAINT; Schema: document_data; Owner: postgres
+-- Name: chunks chunks_documents_fk; Type: FK CONSTRAINT; Schema: document_data; Owner: postgres
 --
 
 ALTER TABLE ONLY document_data.chunks
-    ADD CONSTRAINT fk_document_id FOREIGN KEY (source_id) REFERENCES document_data.documents(id);
+    ADD CONSTRAINT chunks_documents_fk FOREIGN KEY (source_id) REFERENCES document_data.documents(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -241,6 +255,14 @@ ALTER TABLE ONLY document_data.chunks
 
 ALTER TABLE ONLY document_data.documents
     ADD CONSTRAINT fk_owner_user_id FOREIGN KEY (owner) REFERENCES user_data.users(id);
+
+
+--
+-- Name: sessions sessions_users_fk; Type: FK CONSTRAINT; Schema: user_data; Owner: postgres
+--
+
+ALTER TABLE ONLY user_data.sessions
+    ADD CONSTRAINT sessions_users_fk FOREIGN KEY (user_id) REFERENCES user_data.users(id) ON DELETE CASCADE;
 
 
 --
@@ -273,6 +295,13 @@ GRANT ALL ON TABLE document_data.chunks TO mvxmt;
 
 
 --
+-- Name: SEQUENCE chunks_id_seq; Type: ACL; Schema: document_data; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE document_data.chunks_id_seq TO mvxmt;
+
+
+--
 -- Name: TABLE documents; Type: ACL; Schema: document_data; Owner: postgres
 --
 
@@ -280,10 +309,38 @@ GRANT ALL ON TABLE document_data.documents TO mvxmt;
 
 
 --
+-- Name: SEQUENCE document_id_seq; Type: ACL; Schema: document_data; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE document_data.document_id_seq TO mvxmt;
+
+
+--
+-- Name: TABLE chat_threads; Type: ACL; Schema: user_data; Owner: postgres
+--
+
+GRANT ALL ON TABLE user_data.chat_threads TO mvxmt;
+
+
+--
+-- Name: TABLE sessions; Type: ACL; Schema: user_data; Owner: postgres
+--
+
+GRANT ALL ON TABLE user_data.sessions TO mvxmt;
+
+
+--
 -- Name: TABLE users; Type: ACL; Schema: user_data; Owner: postgres
 --
 
 GRANT ALL ON TABLE user_data.users TO mvxmt;
+
+
+--
+-- Name: SEQUENCE users_id_seq; Type: ACL; Schema: user_data; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE user_data.users_id_seq TO mvxmt;
 
 
 --
