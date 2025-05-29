@@ -87,11 +87,13 @@ portion of each provided context source and you will not mention that you were u
         try:
             stream = await client.chat(
                 model=self.model,
-                messages=[{
-                    "role":"user",
-                    "content":f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
-                }],
-                stream=True
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"{primer}\n<CONTEXT>{ctx}</CONTEXT>\n<PROMPT>{user_prompt}</PROMPT>",
+                    }
+                ],
+                stream=True,
             )
 
             async for chunk in stream:
@@ -111,5 +113,13 @@ portion of each provided context source and you will not mention that you were u
             async for chunk in stream:
                 yield chunk["message"]["content"]
 
+        except ollama.ResponseError as e:
+            print("Error: ", e.error)
+
+    async def get_models(self):
+        client = ollama.AsyncClient()
+        try:
+            models = await client.list()
+            return models
         except ollama.ResponseError as e:
             print("Error: ", e.error)
