@@ -4,6 +4,7 @@ import ollama
 class PromptManager:
     def __init__(self, model="llama3.2:3b"):
         self.model = model
+        self.__grading_model = "llama3.2:3b"
 
     async def get_relevance(self, chunk: str, user_prompt: str):
         client = ollama.AsyncClient()
@@ -33,7 +34,7 @@ the provided prompt it will receive a 0.\
             "content": f"{relevance_primer} <PROMPT>{user_prompt}</PROMPT><CHUNK>{chunk}</CHUNK>",
         }
         try:
-            response = await client.chat(model=self.model, messages=[message])
+            response = await client.chat(model=self.__grading_model, messages=[message])
         except ollama.ResponseError as e:
             print("Error:", e.error)
 
@@ -69,7 +70,7 @@ the provided prompt it will receive a 0.\
 
         message = {"role": "user", "content": f"{primer} <RESPONSE>{answer}</RESPONSE>"}
         try:
-            response = await client.chat(model=self.model, messages=[message])
+            response = await client.chat(model=self.__grading_model, messages=[message])
         except ollama.ResponseError as e:
             print("Error: ", e.error)
 
@@ -79,11 +80,11 @@ the provided prompt it will receive a 0.\
         client = ollama.AsyncClient()
         primer = 'You are an expert in the subject matter contained between the <PROMPT></PROMPT> tag. \
 The users original prompt will be contained within that same <PROMPT></PROMPT> tag. You are to expand and \
-augment your own answer by using the provided context contained within the <CONTEXT></CONTEXT> tags wihtout \
-simply repeating the information verbatim. You will ensure your answer takes into consideration the provided \
+augment your own answer by using the provided context contained within the <CONTEXT></CONTEXT> tags without \
+repeating the information verbatim. You will ensure your answer takes into consideration the provided \
 context when you answer the users prompt. \
 When using the provided context your answer you will ignore everything but the "text" \
-portion of each provided context source and you will not mention that you were using context.'
+portion of each provided context source and you will cannot mention that you were using context.'
         try:
             stream = await client.chat(
                 model=self.model,

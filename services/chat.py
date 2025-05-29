@@ -83,7 +83,7 @@ async def chat(
 
             approved_context = []
             if user:
-                settings = model_settings.get_users_model_settings(conn,user.id)
+                settings = await model_settings.get_users_model_settings(conn,user.id)
                 request = ModelRequest(
                     user_prompt=user_prompt,
                     distance=settings.distance,
