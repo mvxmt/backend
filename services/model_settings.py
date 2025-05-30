@@ -1,6 +1,4 @@
 import sys
-from fastapi import HTTPException
-
 from db.client import DatabaseConnection
 
 # sys hacks to get imports to work
@@ -20,11 +18,6 @@ async def get(
     user: Annotated[UserDBO, Depends(get_current_user)], 
     conn: DatabaseConnection):
         return await model_settings.get_users_model_settings(conn, user.id)
-
-# @router.get("/add_model_settings")
-# async def create_user_settings(
-#     conn: DatabaseConnection, settings:model_settings.ModelSettings):
-#     return await model_settings.add_new_model_settings(conn,settings)
 
 @router.post("/save")
 async def save(
