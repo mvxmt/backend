@@ -153,7 +153,7 @@ async def chat(
 @router.get("/models")
 async def models():
     pm = PromptManager()
-    res = await pm.get_models()
+    res = await pm.get_local_models()
     models = []
     for info in res.models:
         if "nomic" not in info.model:

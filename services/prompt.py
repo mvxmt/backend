@@ -4,7 +4,7 @@ import ollama
 class PromptManager:
     def __init__(self, model="llama3.2:3b"):
         self.model = model
-        self.__grading_model = "llama3.2:3b"
+        self.__grading_model = "llama3.2:1b"
 
     async def get_relevance(self, chunk: str, user_prompt: str):
         client = ollama.AsyncClient()
@@ -117,10 +117,18 @@ portion of each provided context source and you will cannot mention that you wer
         except ollama.ResponseError as e:
             print("Error: ", e.error)
 
-    async def get_models(self):
+    async def get_local_models(self):
         client = ollama.AsyncClient()
         try:
             models = await client.list()
+            return models
+        except ollama.ResponseError as e:
+            print("Error: ", e.error)
+
+    async def get_loaded_models(self):
+        client = ollama.AsyncClient()
+        try:
+            models = await client.ps()
             return models
         except ollama.ResponseError as e:
             print("Error: ", e.error)
