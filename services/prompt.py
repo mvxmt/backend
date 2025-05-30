@@ -2,9 +2,9 @@ import ollama
 
 
 class PromptManager:
-    def __init__(self, model="llama3.2:3b"):
+    def __init__(self, model="gemma3:1b",grading_model="gemma3:1b"):
         self.model = model
-        self.__grading_model = "llama3.2:1b"
+        self.__grading_model = grading_model
 
     async def get_relevance(self, chunk: str, user_prompt: str):
         client = ollama.AsyncClient()
