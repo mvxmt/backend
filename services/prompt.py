@@ -1,6 +1,5 @@
 import ollama
 
-
 class PromptManager:
     def __init__(self, model="llama3.2:3b"):
         self.model = model
