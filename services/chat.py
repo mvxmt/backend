@@ -10,6 +10,7 @@ from db.database_chunks import DatabaseChunkManager
 from services.context import ContextManager
 from services.embedding import EmbedManager
 from services.prompt import PromptManager
+import db.model_settings as model_settings
 
 from services.crypto import CryptographyManager
 from config import Settings, get_settings
@@ -41,6 +42,11 @@ class Chunk(BaseModel):
     text:str
     distance:str
 
+class ModelRequest(BaseModel):
+    user_prompt:Annotated[str, Form()]
+    distance:int
+    limit:int
+    model:str
 
 dotenv.load_dotenv()
 
@@ -56,7 +62,6 @@ async def chat(
     em = EmbedManager()
     crypto = CryptographyManager.from_settings(settings)
     ctx = ContextManager(crypto)
-    pm = PromptManager()
 
     print("Submitted Prompt:",user_prompt)
     async for conn in get_database_session():
@@ -78,9 +83,17 @@ async def chat(
 
             approved_context = []
             if user:
+                settings = await model_settings.get_users_model_settings(conn,user.id)
+                request = ModelRequest(
+                    user_prompt=user_prompt,
+                    distance=settings.distance,
+                    limit=settings.chunks,
+                    model=settings.model
+                )
+                pm = PromptManager(request.model)
                 try:
                     print("Fetching Nearby Chunks...")
-                    results = await cm.get_related_chunks(embed,user.id,0.3)
+                    results = await cm.get_related_chunks(embed,user.id,request.distance, request.limit)
                 except Exception as e:
                     print("Error: ",e)
                 else:
@@ -114,7 +127,7 @@ async def chat(
                             graded_entry.source = entry.source
                             graded_entry.text = entry.text
                             #Fill new values
-                            graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,user_prompt)
+                            graded_entry.score,graded_entry.justification = await pm.get_relevance(entry.text,request.user_prompt)
                             if graded_entry.score != 0:
                                 approved_context.append(graded_entry)
                         print(f"Grading Completed: {len(approved_context)} Chunks Approved")
@@ -126,12 +139,24 @@ async def chat(
             if user and len(approved_context) > 0:
                 try:
                     print('Answering Prompt With Context...')
-                    return StreamingResponse(pm.load_context(context,user_prompt))
+                    return StreamingResponse(pm.load_context(context,request.user_prompt))
                 except Exception as e:
                     print("Error: ",e)
             else:
                 try:
+                    pm = PromptManager()
                     print('Answering Prompt without Context...')
                     return StreamingResponse(pm.raw_answer(user_prompt))
                 except Exception as e:
                     print("Error: ",e)
+
+@router.get("/models")
+async def models():
+    pm = PromptManager()
+    res = await pm.get_local_models()
+    models = []
+    for info in res.models:
+        if "nomic" not in info.model:
+            models.append(info.model)
+    return models
+

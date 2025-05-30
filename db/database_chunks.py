@@ -27,16 +27,24 @@ class DatabaseChunkManager:
             self, 
             vector: np.ndarray, 
             user_id:int,
-            distance:float=0.5,):
+            distance:float=0.5,
+            limit:int=10):
         select_query = """
                 SELECT document_data.documents.owner as owner, document_data.chunks.id, source_id, chunk_text, chunk_vector, chunk_vector <=> %s::vector as distance
                 FROM document_data.chunks
                 JOIN document_data.documents on document_data.chunks.source_id = document_data.documents.id
                 WHERE chunk_vector <=> %s::vector < %s::float AND owner = %s::int
                 ORDER BY 1 - (chunk_vector <=> %s::vector) DESC
-                LIMIT 10
+                LIMIT %s
                         """
         async with self.__conn.cursor() as cur:
-            await cur.execute(select_query, (vector.tolist(),vector.tolist(),distance,user_id,vector.tolist(),))
+            await cur.execute(
+                select_query, 
+                (vector.tolist(),
+                 vector.tolist(),
+                 distance,
+                 user_id,
+                 vector.tolist(),
+                 limit))
             rows = await cur.fetchall()
             return rows
