@@ -199,3 +199,5 @@ pyrightconfig.json
 
 .envrc
 .direnv
+
+log/

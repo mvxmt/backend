@@ -32,7 +32,7 @@ class DatabaseDocumentManager:
                     filename
                 ),
             )
-            await self.__conn.commit()
+            #await self.__conn.commit()
             return str(doc_id)
 
     async def get_all_files_for_user(self,user_id: int) -> list[Document]:

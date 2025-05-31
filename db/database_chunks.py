@@ -15,7 +15,7 @@ class DatabaseChunkManager:
                 insert_query,
                 (source_id, chunk_text, chunk_vector.tolist()),
             )
-            await self.__conn.commit()
+            #await self.__conn.commit()
 
     async def delete_chunk(self, id: int):
         delete_query = "DELETE FROM document_data.chunks WHERE ID = %s"

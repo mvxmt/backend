@@ -23,7 +23,7 @@ dependencies = [
     "cryptography>=44.0.1,<45",
     "tqdm>=4.67.1,<5",
     "unstructured[docx,rtf]>=0.14.8",
-    "chonkie[semantic]>=0.5.1",
+    "chonkie[hub,semantic]>=0.5.1",
     "sentence-transformers>=4.1.0",
 ]
 
